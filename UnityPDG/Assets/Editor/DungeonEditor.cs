@@ -10,6 +10,8 @@ public class DungeonEditor :  EditorWindow{
 	}
 
 	void OnGUI () {
-		// The actual window code goes here
+		BeginWindows();
+		EditorGUILayout.TextField("prova","prova");
+		EndWindows();
 	}
 }
