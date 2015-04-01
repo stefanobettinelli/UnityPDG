@@ -1,23 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class DungeonGenerator : MonoBehaviour {
+public class DungeonGenerator : MonoBehaviour, DungeonGeneratorInterface {
 
 	public Dungeon dungeonPrefab;
 	private Dungeon dungeonInstance;
 
-	// Use this for initialization
-	void Start () {
-		CreateDungeon();	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
-
-	private void CreateDungeon(){
+	public void CreateDungeon(string dungeonName){
 		dungeonInstance = Instantiate(dungeonPrefab) as Dungeon;
+        dungeonInstance.DungeonName = dungeonName;
 		dungeonInstance.Generate();
 	}	
 }

@@ -49,6 +49,7 @@
      <Compile Include="Assets\Scripts\Dungeon.cs" />
      <Compile Include="Assets\Scripts\DungeonCell.cs" />
      <Compile Include="Assets\Scripts\DungeonGenerator.cs" />
+     <Compile Include="Assets\Scripts\DungeonGeneratorInterface.cs" />
      <Compile Include="Assets\Scripts\Example.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>

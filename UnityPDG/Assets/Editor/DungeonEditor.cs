@@ -34,7 +34,7 @@ public class DungeonEditor :  EditorWindow{
         EditorGUILayout.EndHorizontal();
         if (GUILayout.Button("Generate a Dungeon"))
         {
-            //Instantiate();
+            dungeonGeneratorInstance.CreateDungeon(dungeonName);
         }
 	}
 }

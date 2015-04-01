@@ -5,7 +5,20 @@ public class Dungeon : MonoBehaviour {
 
 	public DungeonCell dungeonCellPrefab;
 
+    private string dungeonName;
 	private DungeonCell[,] cells; //matrice di celle
+
+    public string DungeonName
+    {
+        get
+        {
+            return dungeonName;
+        }
+        set
+        {
+            dungeonName = value;
+        }
+    }
 
 	void Start(){
 		//fa partire il dungeon dall'origine
