@@ -4,8 +4,8 @@ using System.Collections;
 
 public class DungeonEditor :  EditorWindow{
 
-    public  DungeonGenerator dungeonGeneratorPrefab = null;
-    private DungeonGenerator dungeonGeneratorInstance = null;
+    //public  DungeonGenerator dungeonGeneratorPrefab;
+    public DungeonGenerator dungeonGeneratorInstance;
 
     string dungeonName = "";
 
@@ -27,10 +27,12 @@ public class DungeonEditor :  EditorWindow{
 
 	void OnGUI () 
     {
+        Event e = Event.current;
+
         GUILayout.Label("Base Settings", EditorStyles.boldLabel);
         dungeonName = EditorGUILayout.TextField("Dungeon Name", dungeonName);
         EditorGUILayout.BeginHorizontal();
-        dungeonGeneratorInstance = (DungeonGenerator) EditorGUILayout.ObjectField("Dungeon Generator", dungeonGeneratorPrefab, typeof(DungeonGenerator), false);
+        dungeonGeneratorInstance = (DungeonGenerator)EditorGUILayout.ObjectField("Dungeon Generator", dungeonGeneratorInstance, typeof(DungeonGenerator), false);
         EditorGUILayout.EndHorizontal();
         if (GUILayout.Button("Generate a Dungeon"))
         {
