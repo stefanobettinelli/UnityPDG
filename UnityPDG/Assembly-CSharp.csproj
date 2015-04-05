@@ -46,7 +46,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Directorion.cs" />
+     <Compile Include="Assets\Scripts\Direction.cs" />
      <Compile Include="Assets\Scripts\Dungeon.cs" />
      <Compile Include="Assets\Scripts\DungeonCell.cs" />
      <Compile Include="Assets\Scripts\DungeonGenerator.cs" />

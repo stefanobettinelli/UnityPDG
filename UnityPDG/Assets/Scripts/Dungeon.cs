@@ -36,13 +36,18 @@ public class Dungeon : MonoBehaviour {
 		transform.position = new Vector3(0f,0f,0f);
 	}
 
+	public DungeonCell GetCell(IntVector2 coordinates){
+		return cells[coordinates.x, coordinates.z];
+	}
+
 	public void Generate(){
 		cells = new DungeonCell[size.x,size.z];
 		IntVector2 coordinates = RandomCoordinates;
-		while(ContainsCoordinates(coordinates)){
+		while(ContainsCoordinates(coordinates) && GetCell (coordinates) == null){
 			Debug.Log("new coordinates:" + coordinates.x + " " + coordinates.z );
 			CreateCell(coordinates);
-			coordinates.z += 1;
+			//uso del metodo extended Directions.RandomValue restituisce un tipo Direction a cui è possibile applicare ToIntVector2
+			coordinates += Directions.RandomValue.ToIntVector2();
 		}
 	}
 
