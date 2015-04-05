@@ -9,14 +9,10 @@ public class DungeonEditor :  EditorWindow{
 
     string dungeonName = "";
 
-    [MenuItem("Window/Dungeon Generator Editor")]
-    static void Init()
-    {
-        //UnityEditor.EditorWindow window = GetWindow(typeof(EditorGUI.ObjectField));
-    }
-
+	[MenuItem("Window/Dungeon Generator Editor")]
     static void  ShowWindow () 
     {
+
 		EditorWindow.GetWindow(typeof(DungeonEditor));
 	}
 
@@ -27,8 +23,6 @@ public class DungeonEditor :  EditorWindow{
 
 	void OnGUI () 
     {
-        Event e = Event.current;
-
         GUILayout.Label("Base Settings", EditorStyles.boldLabel);
         dungeonName = EditorGUILayout.TextField("Dungeon Name", dungeonName);
         EditorGUILayout.BeginHorizontal();
@@ -38,5 +32,9 @@ public class DungeonEditor :  EditorWindow{
         {
             dungeonGeneratorInstance.CreateDungeon(dungeonName);
         }
+		if (GUILayout.Button("Clear Dungeon"))
+		{
+			//TODO...
+		}
 	}
 }

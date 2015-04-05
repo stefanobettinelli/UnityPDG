@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Dungeon : MonoBehaviour {
 
+	public IntVector2 size;
 	public DungeonCell dungeonCellPrefab;
 
     private string dungeonName;
@@ -20,26 +21,38 @@ public class Dungeon : MonoBehaviour {
         }
     }
 
+	public IntVector2 RandomCoordinates{
+		get{
+			return new IntVector2(Random.Range(0,size.x), Random.Range(0,size.z));
+		}
+	}
+
+	public bool ContainsCoordinates(IntVector2 coordinates){
+		return (coordinates.x >= 0 && coordinates.x < size.x) && (coordinates.z>= 0 && coordinates.z < size.z); 
+	}
+
 	void Start(){
 		//fa partire il dungeon dall'origine
 		transform.position = new Vector3(0f,0f,0f);
 	}
 
 	public void Generate(){
-		cells = new DungeonCell[20,20];
-		for(int x = 0; x < 20; x++){
-			for(int z = 0; z < 20; z++){
-				CreateCell(x, z);
-			}
+		cells = new DungeonCell[size.x,size.z];
+		IntVector2 coordinates = RandomCoordinates;
+		while(ContainsCoordinates(coordinates)){
+			Debug.Log("new coordinates:" + coordinates.x + " " + coordinates.z );
+			CreateCell(coordinates);
+			coordinates.z += 1;
 		}
 	}
 
-	public void CreateCell(int x, int z){
+	public void CreateCell(IntVector2 coordinates){
 		DungeonCell newDungeonCell = Instantiate(dungeonCellPrefab) as DungeonCell;
-		cells[x,z] = newDungeonCell;
-		newDungeonCell.name = "Dungeon Cell " + x + ", " + z;
+
+		cells[coordinates.x,coordinates.z] = newDungeonCell;
+		newDungeonCell.name = "Dungeon Cell " + coordinates.x + ", " + coordinates.z;
 		newDungeonCell.transform.parent = transform; //fa diventare tutte le celle generate figlie del game object Dungeon
-		newDungeonCell.transform.localPosition = new Vector3(x - 20 * 0.5f + 0.5f, 0f, z - 20 * 0.5f + 0.5f);
+		newDungeonCell.transform.localPosition = new Vector3(coordinates.x - size.x * 0.5f + 0.5f, 0f, coordinates.z - size.z * 0.5f + 0.5f);
 	}
 
 }
