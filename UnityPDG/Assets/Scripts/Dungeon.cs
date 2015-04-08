@@ -1,17 +1,28 @@
 ﻿ using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Dungeon : MonoBehaviour {
 
 	public IntVector2 size;
 	public DungeonCell dungeonCellPrefab;
-	public int minRoomWidth;
-	public int maxRoomWidth;
-	public int minRoomHeight;
-	public int maxRoomHeight;
+
+    //per il momento provo a generare una singola stanza
+    private DungeonRoom aRoom;
+
+	private int _minRoomWidth;
+	private int _maxRoomWidth;
+	private int _minRoomHeight;
+	private int _maxRoomHeight;
+
+    public int MinRoomWidth { get { return _minRoomWidth; } set { _minRoomWidth = value; } }
+    public int MaxRoomWidth { get { return _maxRoomWidth; } set { _maxRoomWidth = value; } }
+    public int MinRoomHeight { get { return _minRoomHeight; } set { _minRoomHeight = value; } }
+    public int MaxRoomHeight { get { return _maxRoomHeight; } set { _maxRoomHeight = value; } }
 
 
     private string dungeonName;
+    private List<DungeonCell> activeCells = new List<DungeonCell>();
 	//private DungeonCell[,] cells; //matrice di celle
 
     public string DungeonName
@@ -45,41 +56,40 @@ public class Dungeon : MonoBehaviour {
 		return cells[coordinates.x, coordinates.z];
 	}*/
 
-	public void Generate(){
-
-		CreateRandomDungeonRoom();
-
-		/*cells = new DungeonCell[size.x,size.z];
-		IntVector2 coordinates = RandomCoordinates;
-		while(ContainsCoordinates(coordinates) && GetCell (coordinates) == null){
-			Debug.Log("new coordinates:" + coordinates.x + " " + coordinates.z );
-			CreateCell(coordinates);
-			//uso del metodo extended Directions.RandomValue restituisce un tipo Direction a cui è possibile applicare ToIntVector2
-			coordinates += Directions.RandomValue.ToIntVector2();
-		}*/
+    public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight)
+    {
+        Debug.Log("Generating dungeon...size ranges: " + minWidth + " " + maxWidth + " " + minHeight + " " + maxHeight +" ");
+		CreateRandomDungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
+        Debug.Log("Generation complete");
 	}
 
 	//crea una stanza con altezza e larghezza casuali
-	public void CreateRandomDungeonRoom(){
-		//cells = new DungeonCell[size.x,size.z]; forse non serve
-		//origine della stanza (confinata all'interno delle dimensioni del dungeon)
-		//NB le stanze possono anche estendersi oltre size.x/y, invece l'orgine rimane confinata su quei due limiti
-		IntVector2 roomOrigin = new IntVector2(Random.Range(0,size.x),Random.Range(0,size.z));
-		int roomWidth = Random.Range(minRoomWidth, maxRoomWidth);
-		int roomHeight = Random.Range(minRoomWidth, maxRoomWidth);
-		for(int x = 0; x < roomWidth; x++){
-			for(int z = 0; z < roomHeight; z++){
-				CreateCell(new IntVector2(x + roomOrigin.x,z + roomOrigin.z));
-			}
-		}
+    public void CreateRandomDungeonRoom(int minWidth, int maxWidth, int minHeight, int maxHeight)
+    {
+        aRoom = new DungeonRoom();
+        aRoom.generateRoomSize(minWidth, maxWidth, minHeight, maxHeight);
+        Debug.Log(aRoom);
+
+        for (int x = 0; x < aRoom.Data.Width; x++)
+        {
+            for (int z = 0; z < aRoom.Data.Height; z++)
+            {
+                activeCells.Add(CreateCell(new IntVector2(x, z)));
+            }
+        }
+        foreach(DungeonCell cell in activeCells){
+            //Debug.Log(cell.ToString());
+        }
 	}
 
-	public void CreateCell(IntVector2 coordinates){
+	public DungeonCell CreateCell(IntVector2 coordinates){
 		DungeonCell newDungeonCell = Instantiate(dungeonCellPrefab) as DungeonCell;
 		//cells[coordinates.x,coordinates.z] = newDungeonCell;
 		newDungeonCell.name = "Dungeon Cell " + coordinates.x + ", " + coordinates.z;
+        newDungeonCell.Coordinates = coordinates;
 		newDungeonCell.transform.parent = transform; //fa diventare tutte le celle generate figlie del game object Dungeon
 		newDungeonCell.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);
+        return newDungeonCell;
 	}
 
 }

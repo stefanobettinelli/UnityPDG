@@ -4,13 +4,13 @@ using System.Collections;
 public class DungeonGenerator : MonoBehaviour, DungeonGeneratorInterface {
 
 	public Dungeon dungeonPrefab;
-	private Dungeon dungeonInstance;
+	private Dungeon _dungeonInstance;
 
-	public void CreateDungeon(string dungeonName){
-		dungeonInstance = Instantiate(dungeonPrefab) as Dungeon;
-        dungeonInstance.DungeonName = dungeonName;
-        Debug.Log("Generating dungeon...");
-		dungeonInstance.Generate();
-        Debug.Log("Generation complete");
+    public void CreateDungeon(string dungeonName, int minWidth, int maxWidth, int minHeight, int maxHeight)
+    {
+		_dungeonInstance = Instantiate(dungeonPrefab) as Dungeon;
+        _dungeonInstance.transform.localPosition = new Vector3(0,0,0);
+        _dungeonInstance.DungeonName = dungeonName;        
+		_dungeonInstance.Generate(minWidth, maxWidth, minHeight, maxHeight);
 	}	
 }
