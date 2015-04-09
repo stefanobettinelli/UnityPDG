@@ -55,6 +55,7 @@
      <Compile Include="Assets\Scripts\Example.cs" />
      <Compile Include="Assets\Scripts\IntVector2.cs" />
      <Compile Include="Assets\Scripts\RoomData.cs" />
+     <Compile Include="Assets\Scripts\WallUnit.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

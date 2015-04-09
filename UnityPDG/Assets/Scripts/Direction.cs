@@ -11,12 +11,24 @@ public static class Directions{
 
 	public const int count = 4;
 
-	private static IntVector2[] directionVectors = {
+	public static IntVector2[] directionVectors = {
 		new IntVector2(0,1),
 		new IntVector2(1,0),
 		new IntVector2(0,-1),
 		new IntVector2(-1,0)
 	};
+
+    private static Quaternion[] rotations = {
+		Quaternion.identity,
+		Quaternion.Euler(0f, 90f, 0f),
+		Quaternion.Euler(0f, 180f, 0f),
+		Quaternion.Euler(0f, 270f, 0f)
+	};
+
+    public static Quaternion ToRotation(this Direction direction)
+    {
+        return rotations[(int)direction];
+    }
 
 	/* extention method: vuol dire che posso usarlo come fosse un motedo non statico su un oggetto
 	l'oggetto su cui applicare il metodo è del tipo del primo argomento, infatti bisogna aggiungere

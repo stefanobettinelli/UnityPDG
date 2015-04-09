@@ -6,6 +6,7 @@ public class Dungeon : MonoBehaviour {
 
 	public IntVector2 size;
 	public DungeonCell dungeonCellPrefab;
+    public WallUnit wallPrefab;
 
     //per il momento provo a generare una singola stanza
     private DungeonRoom aRoom;
@@ -68,21 +69,49 @@ public class Dungeon : MonoBehaviour {
     {
         aRoom = new DungeonRoom();
         aRoom.generateRoomSize(minWidth, maxWidth, minHeight, maxHeight);
-        Debug.Log(aRoom);
 
         for (int x = 0; x < aRoom.Data.Width; x++)
         {
             for (int z = 0; z < aRoom.Data.Height; z++)
             {
-                activeCells.Add(CreateCell(new IntVector2(x, z)));
+                DungeonCell aCell = CreateCell(new IntVector2(x, z));
+                activeCells.Add(aCell);
+                //ogni volta che si crea una cella se questa fa parte del perimetro creo una unità muro
+                //il controllo che sia nel perimetro viene effettuato nella funzione stessa
+                CreateWall(x, z, aRoom.Data.Width, aRoom.Data.Height, aCell);
             }
-        }
-        foreach(DungeonCell cell in activeCells){
-            //Debug.Log(cell.ToString());
         }
 	}
 
-	public DungeonCell CreateCell(IntVector2 coordinates){
+    private void CreateWall(int x, int z, int width, int height, DungeonCell cell){
+        if ( z == 0 && x >= 0 && x < width )
+        {
+            InstanciateWall(Directions.directionVectors[(int)Direction.South], Direction.South, cell);
+        } 
+        if( z == height-1 && x >= 0 && x < width )
+        {
+            InstanciateWall(Directions.directionVectors[(int)Direction.North], Direction.North, cell);
+        } 
+        if( x == 0 && z >= 0 && z < height )
+        {
+            InstanciateWall(Directions.directionVectors[(int)Direction.West], Direction.West, cell);
+        }
+        if ( x == width-1 && z >= 0 && z < height)
+        {
+            InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell);
+        }
+    }
+
+    private void InstanciateWall(IntVector2 wallDirection, Direction direction ,DungeonCell cell)
+    {
+        WallUnit aWall = Instantiate(wallPrefab) as WallUnit;
+        aWall.transform.parent = cell.transform;
+        aWall.transform.localPosition = new Vector3(wallDirection.x,0.5f,wallDirection.z);
+        aWall.transform.localRotation = direction.ToRotation();
+
+    }
+
+	private DungeonCell CreateCell(IntVector2 coordinates){
 		DungeonCell newDungeonCell = Instantiate(dungeonCellPrefab) as DungeonCell;
 		//cells[coordinates.x,coordinates.z] = newDungeonCell;
 		newDungeonCell.name = "Dungeon Cell " + coordinates.x + ", " + coordinates.z;

@@ -14,4 +14,9 @@ public struct IntVector2 {
 		a.z += b.z;
 		return a;
 	}
+
+    public override string ToString()
+    {
+        return "x: " + x + ",z: " + z;
+    }
 }

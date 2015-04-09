@@ -5,6 +5,8 @@ public class DungeonRoom {
 
     private RoomData data;
 
+    //public 
+
     public RoomData Data { get { return data; } set { data = value; } }
 
     public DungeonRoom()

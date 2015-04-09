@@ -4,8 +4,8 @@ using System.Collections;
 
 public class DungeonEditor :  EditorWindow{
 
-    //l'idea è di avere un singolo generatore e quindi di implementare il pattern singleton
-    private static DungeonGenerator dungeonGeneratorInstance = null;
+    private static DungeonGenerator dungeonGeneratorInstance;
+    private static Dungeon dungeonInstance;
 
     string dungeonName = "";
     public int minWidth;
@@ -37,11 +37,7 @@ public class DungeonEditor :  EditorWindow{
         maxHeight = EditorGUILayout.IntField("Max Room Height:", maxHeight);
         if (GUILayout.Button("Generate a Dungeon"))
         {
-            dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight);        
+            dungeonInstance = dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight);        
         }
-		if (GUILayout.Button("Clear Dungeon"))
-		{
-			//TODO...
-		}
 	}
 }
