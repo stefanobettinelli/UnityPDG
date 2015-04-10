@@ -19,7 +19,7 @@ public class RoomData {
 
     public override string ToString()
     {
-        return "width: " + width + ",height: " + height + ",area: " + area;
+        return "RoomData. Width: " + width + ", Height: " + height + ", Area: " + area;
     }
 
 }

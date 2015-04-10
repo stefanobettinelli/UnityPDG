@@ -5,8 +5,6 @@ public class DungeonRoom {
 
     private RoomData data;
 
-    //public 
-
     public RoomData Data { get { return data; } set { data = value; } }
 
     public DungeonRoom()
@@ -23,7 +21,7 @@ public class DungeonRoom {
 
     public override string ToString()
     {
-        string str = "Room Data: " + data;
+        string str = " " + data;
         return str;
     }
 
