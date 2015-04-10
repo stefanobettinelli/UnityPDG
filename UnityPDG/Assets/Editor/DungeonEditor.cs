@@ -39,5 +39,9 @@ public class DungeonEditor :  EditorWindow{
         {
             dungeonInstance = dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight);        
         }
+        if (GUILayout.Button("Destroy Dungeon"))
+        {
+            DestroyImmediate(dungeonInstance.gameObject);
+        }
 	}
 }

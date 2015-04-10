@@ -60,10 +60,10 @@ public class Dungeon : MonoBehaviour {
         createCluster(minWidth, maxWidth, minHeight, maxHeight);
         //Debug.Log("Generation complete");
 
-        foreach (DungeonCell aCell in activeCells)
-        {
-            DestroyImmediate(aCell.gameObject);
-        }
+        //foreach (DungeonCell aCell in activeCells)
+        //{
+            //DestroyImmediate(aCell.gameObject);
+        //}
 	}
 
     //crea un cluster di 3 stanze nello spazio...disposizione ancora da stabilire
