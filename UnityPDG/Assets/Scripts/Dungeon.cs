@@ -57,56 +57,89 @@ public class Dungeon : MonoBehaviour {
     public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight)
     {
         //Debug.Log("Generating dungeon...size ranges: " + minWidth + " " + maxWidth + " " + minHeight + " " + maxHeight +" ");
-        createCluster(minWidth, maxWidth, minHeight, maxHeight);
-        //Debug.Log("Generation complete");
-
-        //foreach (DungeonCell aCell in activeCells)
-        //{
-            //DestroyImmediate(aCell.gameObject);
-        //}
+        //prova per vedere come si comporta creando 3 cluster
+        IntVector2 clusterStartPosition = new IntVector2(0,0);
+        for (int i = 0; i < 1; i++)
+        {
+            clusterStartPosition = createCluster(minWidth, maxWidth, minHeight, maxHeight, clusterStartPosition);
+        }
 	}
 
     //crea un cluster di 3 stanze nello spazio...disposizione ancora da stabilire
-    public DungeonRoom[] createCluster(int minWidth, int maxWidth, int minHeight, int maxHeight)
+    public IntVector2 createCluster(int minWidth, int maxWidth, int minHeight, int maxHeight, IntVector2 clusterStartPosition)
     {
-        int boundingBoxWidht = 0;
-        int boundingBoxHeight = 0;
-
+        int maxX = 0;
+        int minX = 0;
+        int maxZ = 0;
+        int minZ = 0;
         DungeonRoom[] cluster = new DungeonRoom[roomNumCluster];
-        for (int i = 0; i < roomNumCluster; i++)
+
+        //creo le stanze come oggetti e calcolo le dimensioni del cluster di contenimento
+        for (int i = 0; i < 2; i++)
         {
             cluster[i] = CreateRandomDungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
-            boundingBoxWidht += cluster[i].Data.Width;
-            boundingBoxHeight += cluster[i].Data.Height;
+            if (i == 0)
+            {
+                AllocateRoomInSpace(cluster[i], new IntVector2(0, 0),1,1);
+                maxX = cluster[i].Data.Width; minX = 0;
+                maxZ = cluster[i].Data.Height; minZ = 0;
+            }
+            else
+            {
+                int direction = Random.Range(0, 4);
+                if (direction == 0)
+                {
+                    Debug.Log("DX");
+                    AllocateRoomInSpace(cluster[i], new IntVector2(maxX, 0),1,1);
+                    maxZ = Mathf.Max(maxZ, cluster[i].Data.Height);
+                    maxX += cluster[i].Data.Width;
+                }
+                if (direction == 1) {
+                    Debug.Log("DOWN");
+                    AllocateRoomInSpace(cluster[i], new IntVector2(0,minZ),1,-1);
+                    maxX = Mathf.Max(maxX, cluster[i].Data.Width);
+                    minZ -= cluster[i].Data.Height;
+                }
+                if (direction == 2) {
+                    Debug.Log("SX");
+                    AllocateRoomInSpace(cluster[i],new IntVector2(minX,0),-1,1);
+                    maxZ = Mathf.Max(maxZ, cluster[i].Data.Height);
+                    minX -= cluster[i].Data.Width;
+                }
+                if (direction == 3) {
+                    Debug.Log("UP");
+                    AllocateRoomInSpace(cluster[i], new IntVector2(0, maxZ), 1, 1);
+                    maxX = Mathf.Max(maxX, cluster[i].Data.Width);
+                    maxZ += cluster[i].Data.Height;
+                }
+            }
         }
-
-        DungeonCluster aDungeonCluster = new DungeonCluster(boundingBoxWidht, boundingBoxHeight, cluster);
-        Debug.Log(aDungeonCluster);
-        return cluster;
+        return new IntVector2(0,0);//per ora...
     }
 
 	//crea una stanza con altezza e larghezza casuali
     public DungeonRoom CreateRandomDungeonRoom(int minWidth, int maxWidth, int minHeight, int maxHeight)
     {
-        //solo una prova
-        IntVector2 offset = new IntVector2(Random.Range(1,50),Random.Range(1,50));
         //per il momento provo a generare una singola stanza
         DungeonRoom aRoom = new DungeonRoom();
         aRoom.generateRoomSize(minWidth, maxWidth, minHeight, maxHeight);
+        return aRoom;
+	}
 
-        for (int x = 0; x < aRoom.Data.Width; x++)
+    public void AllocateRoomInSpace(DungeonRoom aRoom, IntVector2 offset, int directionX, int directionZ)
+    {
+        for (int x = offset.x; Mathf.Abs(x - offset.x) < aRoom.Data.Width; x += directionX)
         {
-            for (int z = 0; z < aRoom.Data.Height; z++)
+            for (int z = offset.z; Mathf.Abs(z - offset.z) < aRoom.Data.Height; z += directionZ)
             {
-                DungeonCell aCell = CreateCell((new IntVector2(x, z)) + offset);
+                DungeonCell aCell = CreateCell((new IntVector2(x, z)));
                 activeCells.Add(aCell);
                 //ogni volta che si crea una cella se questa fa parte del perimetro creo una unità muro
                 //il controllo che sia nel perimetro viene effettuato nella funzione stessa
                 CreateWall(x, z, aRoom.Data.Width, aRoom.Data.Height, aCell);
             }
         }
-        return aRoom;
-	}
+    }
 
     private void CreateWall(int x, int z, int width, int height, DungeonCell cell){
         if ( z == 0 && x >= 0 && x < width )
@@ -137,12 +170,12 @@ public class Dungeon : MonoBehaviour {
     }
 
 	private DungeonCell CreateCell(IntVector2 coordinates){
-		DungeonCell newDungeonCell = Instantiate(dungeonCellPrefab) as DungeonCell;
-		//cells[coordinates.x,coordinates.z] = newDungeonCell;
-		newDungeonCell.name = "Dungeon Cell " + coordinates.x + ", " + coordinates.z;
+        DungeonCell newDungeonCell = Instantiate(dungeonCellPrefab) as DungeonCell;
+        //cells[coordinates.x,coordinates.z] = newDungeonCell;
+        newDungeonCell.name = "Dungeon Cell " + coordinates.x + ", " + coordinates.z;
         newDungeonCell.Coordinates = coordinates;
-		newDungeonCell.transform.parent = transform; //fa diventare tutte le celle generate figlie del game object Dungeon
-		newDungeonCell.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);
+        newDungeonCell.transform.parent = transform; //fa diventare tutte le celle generate figlie del game object Dungeon
+        newDungeonCell.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);
         return newDungeonCell;
 	}
 
