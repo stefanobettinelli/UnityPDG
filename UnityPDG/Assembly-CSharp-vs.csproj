@@ -53,6 +53,7 @@
      <Compile Include="Assets\Scripts\DungeonGeneratorInterface.cs" />
      <Compile Include="Assets\Scripts\DungeonRoom.cs" />
      <Compile Include="Assets\Scripts\IntVector2.cs" />
+     <Compile Include="Assets\Scripts\NormalizedRandom.cs" />
      <Compile Include="Assets\Scripts\RoomData.cs" />
      <Compile Include="Assets\Scripts\WallUnit.cs" />
  <Reference Include="UnityEngine.UI">

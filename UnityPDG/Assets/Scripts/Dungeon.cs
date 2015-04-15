@@ -1,10 +1,11 @@
-﻿ using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 public class Dungeon : MonoBehaviour {
 
 	public IntVector2 size;
+    public DungeonRoom dungeonRoomPrefab;
 	public DungeonCell dungeonCellPrefab;
     public WallUnit wallPrefab;
 
@@ -13,32 +14,7 @@ public class Dungeon : MonoBehaviour {
 	private int _minRoomHeight;
 	private int _maxRoomHeight;
     private string dungeonName;
-    private const int roomNumCluster = 3; 
     private List<DungeonCell> activeCells = new List<DungeonCell>();
-
-    private struct DungeonCluster
-    {
-        public DungeonRoom[] _cluster;
-        public int _boundingBoxWidth;
-        public int _boundingBoxHeight;
-
-        public DungeonCluster(int boundingBoxWidth, int boundingBoxHeight, DungeonRoom[] cluster)
-        {
-            _cluster = cluster;
-            _boundingBoxWidth = boundingBoxWidth;
-            _boundingBoxHeight = boundingBoxHeight;
-        }
-
-        public override string ToString()
-        {
-            string str = "Bounding box size. Width: " + _boundingBoxWidth + ", Height: " + _boundingBoxHeight + "\n";
-            for (int i = 0; i < roomNumCluster; i++)
-            {
-                str += " " + _cluster[i] + "\n" ;
-            }
-            return str;
-        }
-    };
 
     public int MinRoomWidth { get { return _minRoomWidth; } set { _minRoomWidth = value; } }
     public int MaxRoomWidth { get { return _maxRoomWidth; } set { _maxRoomWidth = value; } }
@@ -56,83 +32,53 @@ public class Dungeon : MonoBehaviour {
 
     public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight)
     {
-        //Debug.Log("Generating dungeon...size ranges: " + minWidth + " " + maxWidth + " " + minHeight + " " + maxHeight +" ");
-        //prova per vedere come si comporta creando 3 cluster
-        IntVector2 clusterStartPosition = new IntVector2(0,0);
-        for (int i = 0; i < 1; i++)
-        {
-            clusterStartPosition = createCluster(minWidth, maxWidth, minHeight, maxHeight, clusterStartPosition);
-        }
+        int bbWidth=0;
+        int bbHeight=0;
+
+        DungeonRoom first = new DungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
+
+        AllocateRoomInSpace(first);
+        bbWidth = first.Data.Width;
+        bbHeight = first.Data.Height;
+        //Debug.Log(bbWidth);
+        //Debug.Log(Mathf.Ceil(bbWidth/2.0f));
+        //Debug.Log(bbHeight);
+        //Debug.Log(Mathf.Ceil(bbHeight/2.0f));
+
+        for (int i = 0; i < 3; i++)
+		{
+            DungeonRoom aRoom = new DungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
+            int direction = Random.Range(0,2);
+            switch (direction)
+	        {
+                case 0:
+                    aRoom.Data.Origin = new IntVector2(Random.Range((int)Mathf.Ceil(bbWidth/2.0f), (int)Mathf.Ceil(bbWidth/2.0f)*2+10), Random.Range(0,bbHeight));
+                    AllocateRoomInSpace(aRoom);
+                    bbWidth = aRoom.Data.Origin.x + aRoom.Data.Width;
+                    bbHeight = Mathf.Max(bbHeight,aRoom.Data.Height);
+                    break;
+                case 1:
+                    aRoom.Data.Origin = new IntVector2(Random.Range(0, bbWidth), Random.Range((int)Mathf.Ceil(bbHeight / 2.0f), (int)Mathf.Ceil(bbHeight / 2.0f) * 2 + 10));
+                    AllocateRoomInSpace(aRoom);
+                    bbWidth = Mathf.Max(bbWidth, aRoom.Data.Width);
+                    bbHeight = aRoom.Data.Origin.x + aRoom.Data.Width;
+                    break;
+	        }
+		 
+		}
+
+
+
 	}
 
-    //crea un cluster di 3 stanze nello spazio...disposizione ancora da stabilire
-    public IntVector2 createCluster(int minWidth, int maxWidth, int minHeight, int maxHeight, IntVector2 clusterStartPosition)
+    public void AllocateRoomInSpace(DungeonRoom aRoom)
     {
-        int maxX = 0;
-        int minX = 0;
-        int maxZ = 0;
-        int minZ = 0;
-        DungeonRoom[] cluster = new DungeonRoom[roomNumCluster];
 
-        //creo le stanze come oggetti e calcolo le dimensioni del cluster di contenimento
-        for (int i = 0; i < 2; i++)
+        for (int x = 0; x < aRoom.Data.Width; x++)
         {
-            cluster[i] = CreateRandomDungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
-            if (i == 0)
+            for (int z = 0; z < aRoom.Data.Height; z++)
             {
-                AllocateRoomInSpace(cluster[i], new IntVector2(0, 0),1,1);
-                maxX = cluster[i].Data.Width; minX = 0;
-                maxZ = cluster[i].Data.Height; minZ = 0;
-            }
-            else
-            {
-                int direction = Random.Range(0, 4);
-                if (direction == 0)
-                {
-                    Debug.Log("DX");
-                    AllocateRoomInSpace(cluster[i], new IntVector2(maxX, 0),1,1);
-                    maxZ = Mathf.Max(maxZ, cluster[i].Data.Height);
-                    maxX += cluster[i].Data.Width;
-                }
-                if (direction == 1) {
-                    Debug.Log("DOWN");
-                    AllocateRoomInSpace(cluster[i], new IntVector2(0,minZ),1,-1);
-                    maxX = Mathf.Max(maxX, cluster[i].Data.Width);
-                    minZ -= cluster[i].Data.Height;
-                }
-                if (direction == 2) {
-                    Debug.Log("SX");
-                    AllocateRoomInSpace(cluster[i],new IntVector2(minX,0),-1,1);
-                    maxZ = Mathf.Max(maxZ, cluster[i].Data.Height);
-                    minX -= cluster[i].Data.Width;
-                }
-                if (direction == 3) {
-                    Debug.Log("UP");
-                    AllocateRoomInSpace(cluster[i], new IntVector2(0, maxZ), 1, 1);
-                    maxX = Mathf.Max(maxX, cluster[i].Data.Width);
-                    maxZ += cluster[i].Data.Height;
-                }
-            }
-        }
-        return new IntVector2(0,0);//per ora...
-    }
-
-	//crea una stanza con altezza e larghezza casuali
-    public DungeonRoom CreateRandomDungeonRoom(int minWidth, int maxWidth, int minHeight, int maxHeight)
-    {
-        //per il momento provo a generare una singola stanza
-        DungeonRoom aRoom = new DungeonRoom();
-        aRoom.generateRoomSize(minWidth, maxWidth, minHeight, maxHeight);
-        return aRoom;
-	}
-
-    public void AllocateRoomInSpace(DungeonRoom aRoom, IntVector2 offset, int directionX, int directionZ)
-    {
-        for (int x = offset.x; Mathf.Abs(x - offset.x) < aRoom.Data.Width; x += directionX)
-        {
-            for (int z = offset.z; Mathf.Abs(z - offset.z) < aRoom.Data.Height; z += directionZ)
-            {
-                DungeonCell aCell = CreateCell((new IntVector2(x, z)));
+                DungeonCell aCell = CreateCell((new IntVector2(x, z)) + aRoom.Data.Origin);
                 activeCells.Add(aCell);
                 //ogni volta che si crea una cella se questa fa parte del perimetro creo una unità muro
                 //il controllo che sia nel perimetro viene effettuato nella funzione stessa
