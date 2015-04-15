@@ -4,10 +4,7 @@ using System.Collections.Generic;
 
 public class Dungeon : MonoBehaviour {
 
-	public IntVector2 size;
     public DungeonRoom dungeonRoomPrefab;
-	public DungeonCell dungeonCellPrefab;
-    public WallUnit wallPrefab;
 
 	private int _minRoomWidth;
 	private int _maxRoomWidth;
@@ -22,107 +19,65 @@ public class Dungeon : MonoBehaviour {
     public int MaxRoomHeight { get { return _maxRoomHeight; } set { _maxRoomHeight = value; } }
     public string DungeonName{ get { return dungeonName; } set { dungeonName = value; } }
 
-	public bool ContainsCoordinates(IntVector2 coordinates){
-		return (coordinates.x >= 0 && coordinates.x < size.x) && (coordinates.z>= 0 && coordinates.z < size.z); 
-	}
-
-	/*public DungeonCell GetCell(IntVector2 coordinates){
-		return cells[coordinates.x, coordinates.z];
-	}*/
-
-    public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight)
+    //Genera l'intero dungeon
+    public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, Dungeon dungeonContainer)
     {
         int bbWidth=0;
         int bbHeight=0;
 
-        DungeonRoom first = new DungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
+        //inizio creazione della stanza nel punto di origine 0,0,0
+        Debug.Log("*** Creating room ORIGIN ***");
+        DungeonRoom first = Instantiate(dungeonRoomPrefab) as DungeonRoom;
+        first.transform.parent = dungeonContainer.transform;
+        first.transform.localPosition = Vector3.zero;
+        first.generateRoomSize(minWidth, maxWidth, minHeight, maxHeight);
+        first.Data.Name = "Room: 0"; first.name = first.Data.Name;
+        
+        first.AllocateRoomInSpace();
+        bbWidth = first.Data.Width;//larghezza del bounding box
+        bbHeight = first.Data.Height;//altezza del bounding box
+        Debug.Log("BB-width: " + bbWidth + " BB-height: " + bbHeight);
+        Debug.Log("************************");
+        //fine creazione prima stanza
 
-        AllocateRoomInSpace(first);
-        bbWidth = first.Data.Width;
-        bbHeight = first.Data.Height;
-        //Debug.Log(bbWidth);
-        //Debug.Log(Mathf.Ceil(bbWidth/2.0f));
-        //Debug.Log(bbHeight);
-        //Debug.Log(Mathf.Ceil(bbHeight/2.0f));
-
-        for (int i = 0; i < 3; i++)
+        //creo le stanze successive alla prima
+        for (int i = 1; i < roomNum; i++)
 		{
-            DungeonRoom aRoom = new DungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
-            int direction = Random.Range(0,2);
+            DungeonRoom aRoom = Instantiate(dungeonRoomPrefab) as DungeonRoom;
+            aRoom.transform.parent = dungeonContainer.transform;
+            aRoom.generateRoomSize(minWidth, maxWidth, minHeight, maxHeight);
+            aRoom.Data.Name = "Room: " + i; aRoom.name = aRoom.Data.Name;
+            int direction = Random.Range(0,2);//scelgo se creare la stanza a destra o sopra il bounding box attaule che racchiude il dungeon
             switch (direction)
 	        {
                 case 0:
+                    Debug.Log("*** Creating room RIGHT ***");
+                    //se si crea a destra l'origne può partire da metà della larghezza del BB fino a 10 unità oltre al BB
                     aRoom.Data.Origin = new IntVector2(Random.Range((int)Mathf.Ceil(bbWidth/2.0f), (int)Mathf.Ceil(bbWidth/2.0f)*2+10), Random.Range(0,bbHeight));
-                    AllocateRoomInSpace(aRoom);
+                    Debug.Log("origin x: " + aRoom.Data.Origin.x + " y: " + aRoom.Data.Origin.z);
+                    aRoom.transform.localPosition = new Vector3(aRoom.Data.Origin.x, 0, aRoom.Data.Origin.z);
+                    activeCells.AddRange(aRoom.AllocateRoomInSpace());
+                    //aggiorno le dimensioni del bounding box in modo che tengano conto della nuova stanza appena creata
                     bbWidth = aRoom.Data.Origin.x + aRoom.Data.Width;
-                    bbHeight = Mathf.Max(bbHeight,aRoom.Data.Height);
+                    bbHeight = Mathf.Max(bbHeight,aRoom.Data.Height + aRoom.Data.Origin.z);
+                    Debug.Log("BB-width: " + bbWidth + " BB-height: " + bbHeight);
+                    Debug.Log("************************");
                     break;
                 case 1:
+                    Debug.Log("*** Creating room UP ***");
+                    //se si crea la stanza sopra il BB l'origne può partire da metà dell'altezza del BB fino a 10 unità oltre l'altezza del BB
                     aRoom.Data.Origin = new IntVector2(Random.Range(0, bbWidth), Random.Range((int)Mathf.Ceil(bbHeight / 2.0f), (int)Mathf.Ceil(bbHeight / 2.0f) * 2 + 10));
-                    AllocateRoomInSpace(aRoom);
-                    bbWidth = Mathf.Max(bbWidth, aRoom.Data.Width);
-                    bbHeight = aRoom.Data.Origin.x + aRoom.Data.Width;
+                    Debug.Log("origin x: " + aRoom.Data.Origin.x + " y: " + aRoom.Data.Origin.z);
+                    aRoom.transform.localPosition = new Vector3(aRoom.Data.Origin.x, 0, aRoom.Data.Origin.z);
+                    activeCells.AddRange(aRoom.AllocateRoomInSpace());
+                    //aggiorno le dimensioni del bounding box in modo che tengano conto della nuova stanza appena creata
+                    bbWidth = Mathf.Max(bbWidth, aRoom.Data.Width + aRoom.Data.Origin.x);
+                    bbHeight = aRoom.Data.Origin.z + aRoom.Data.Height;
+                    Debug.Log("BB-width: " + bbWidth + " BB-height: " + bbHeight);
+                    Debug.Log("************************");
                     break;
 	        }
 		 
 		}
-
-
-
 	}
-
-    public void AllocateRoomInSpace(DungeonRoom aRoom)
-    {
-
-        for (int x = 0; x < aRoom.Data.Width; x++)
-        {
-            for (int z = 0; z < aRoom.Data.Height; z++)
-            {
-                DungeonCell aCell = CreateCell((new IntVector2(x, z)) + aRoom.Data.Origin);
-                activeCells.Add(aCell);
-                //ogni volta che si crea una cella se questa fa parte del perimetro creo una unità muro
-                //il controllo che sia nel perimetro viene effettuato nella funzione stessa
-                CreateWall(x, z, aRoom.Data.Width, aRoom.Data.Height, aCell);
-            }
-        }
-    }
-
-    private void CreateWall(int x, int z, int width, int height, DungeonCell cell){
-        if ( z == 0 && x >= 0 && x < width )
-        {
-            InstanciateWall(Directions.directionVectors[(int)Direction.South], Direction.South, cell);
-        } 
-        if( z == height-1 && x >= 0 && x < width )
-        {
-            InstanciateWall(Directions.directionVectors[(int)Direction.North], Direction.North, cell);
-        } 
-        if( x == 0 && z >= 0 && z < height )
-        {
-            InstanciateWall(Directions.directionVectors[(int)Direction.West], Direction.West, cell);
-        }
-        if ( x == width-1 && z >= 0 && z < height)
-        {
-            InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell);
-        }
-    }
-
-    private void InstanciateWall(IntVector2 wallDirection, Direction direction ,DungeonCell cell)
-    {
-        WallUnit aWall = Instantiate(wallPrefab) as WallUnit;
-        aWall.transform.parent = cell.transform;
-        aWall.transform.localPosition = new Vector3(wallDirection.x,0.5f,wallDirection.z);
-        aWall.transform.localRotation = direction.ToRotation();
-
-    }
-
-	private DungeonCell CreateCell(IntVector2 coordinates){
-        DungeonCell newDungeonCell = Instantiate(dungeonCellPrefab) as DungeonCell;
-        //cells[coordinates.x,coordinates.z] = newDungeonCell;
-        newDungeonCell.name = "Dungeon Cell " + coordinates.x + ", " + coordinates.z;
-        newDungeonCell.Coordinates = coordinates;
-        newDungeonCell.transform.parent = transform; //fa diventare tutte le celle generate figlie del game object Dungeon
-        newDungeonCell.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);
-        return newDungeonCell;
-	}
-
 }

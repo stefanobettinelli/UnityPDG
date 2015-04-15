@@ -6,11 +6,13 @@ public class RoomData {
     private int _width;
     private int _area;
     private IntVector2 _origin;
+    private string _name;
 
     public int Height { get { return _height; } set { _height = value; } }
     public int Width { get { return _width; } set { _width = value; } }
     public int Area { get { return _area; } set { _area = value; } }
     public IntVector2 Origin { get { return _origin; } set { _origin = value; } }
+    public string Name { get { return _name; } set { _name = value; } }
 
     public RoomData(int width, int height)
     {
