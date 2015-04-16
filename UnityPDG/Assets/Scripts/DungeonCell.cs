@@ -8,6 +8,6 @@ public class DungeonCell : MonoBehaviour {
 
     public override string ToString()
     {
-        return "x: " + _coordinates.x + ",z: " + _coordinates.z;
+        return "Cell at x: " + _coordinates.x + ",z: " + _coordinates.z;
     }
 }
