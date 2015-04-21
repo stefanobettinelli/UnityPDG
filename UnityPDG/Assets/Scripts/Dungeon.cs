@@ -143,25 +143,7 @@ public class Dungeon : MonoBehaviour {
                     zMax = (int) (1f * (roomArray[i].Data.Origin.z + roomArray[i].Data.Height));
                     //updateTileMatrix(roomArray[i]);
                     //translateRoom("", roomArray[i]);
-                }
-                else if (direction == 2)
-                {
-                    x = Random.Range(xMin - 2*roomArray[i].Data.Width, xMin - roomArray[i].Data.Width);
-                    z = Random.Range(zMin, zMax - roomArray[i].Data.Height);
-                    roomArray[i].Data.Origin = new IntVector2(x, z);
-                    roomArray[i].Data.Name = "Room-left: " + i;
-                    xMin = (int)(1f * (roomArray[i].Data.Origin.x));
-                    zMax = (int)(1f * Mathf.Max(zMax, roomArray[i].Data.Height + roomArray[i].Data.Origin.z));
-                }
-                else if (direction == 3)
-                {
-                    x = Random.Range(xMin, xMax - roomArray[i].Data.Width);
-                    z = Random.Range(zMin - 2 * roomArray[i].Data.Height, zMin - roomArray[i].Data.Height);
-                    roomArray[i].Data.Origin = new IntVector2(x, z);
-                    roomArray[i].Data.Name = "Room-down: " + i;
-                    xMax = (int)(1f * Mathf.Max(xMax, roomArray[i].Data.Width + roomArray[i].Data.Origin.x));
-                    zMin = (int)(1f * (roomArray[i].Data.Origin.z));
-                }                                     
+                }                                              
             }
         }
 
