@@ -8,10 +8,6 @@ public class DungeonRoom: MonoBehaviour {
     public WallUnit wallPrefab;
 
     private RoomData data;
-    private int minWidth;
-    private int maxWidth;
-    private int minHeight;
-    private int maxHeight;
     private List<DungeonCell> activeCells = new List<DungeonCell>();
 
     public RoomData Data { get { return data; } set { data = value; } }
@@ -23,6 +19,11 @@ public class DungeonRoom: MonoBehaviour {
     public DungeonRoom(int minWidth, int maxWidth, int minHeight, int maxHeight)
     {
         generateRoomSize(minWidth, maxWidth, minHeight, maxHeight);
+    }
+
+    public void generateRoom(DungeonRoom aRoom)
+    {
+        data = aRoom.Data;
     }
 
     public void generateRoomSize(int minWidth, int maxWidth, int minHeight, int maxHeight)
@@ -87,6 +88,12 @@ public class DungeonRoom: MonoBehaviour {
         {
             InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell);
         }
+    }
+
+    //controlla se la stanza passata come parametro si sovrappone a "this" stanza
+    public bool overLap(DungeonRoom aRoom)
+    {
+        return false;
     }
 
     public override string ToString()

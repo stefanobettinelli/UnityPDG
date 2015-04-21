@@ -20,6 +20,7 @@ public class RoomData {
         this._width = width;
         _area = this._height * this._width;
         _origin = new IntVector2(0, 0);
+        _name = "NONAME";
     }
 
     public RoomData(int width, int height, IntVector2 origin)
