@@ -32,8 +32,7 @@ public class Dungeon : MonoBehaviour {
 
         public int this[int i, int j] { get { return m[i, j]; } }
 
-        //restituisce il numero di sovrapposizioni
-        public bool addTile(int x, int z)
+        public void enlargeMatrix(int x, int z)
         {
             if (x >= _w)
             {
@@ -44,14 +43,14 @@ public class Dungeon : MonoBehaviour {
                     for (int i = 0; i < _h; i++)
                     {
                         tmpMatrix[i, j] = m[i, j];
-                    }                    
+                    }
                 }
                 m = tmpMatrix;
                 _w = x + 1;
             }
             if (z >= _h)
             {
-                int[,] tmpMatrix = new int[z + 1, _w]; 
+                int[,] tmpMatrix = new int[z + 1, _w];
                 //System.Array.Copy(m, tmpMatrix, _w * _h);
                 for (int j = 0; j < _w; j++)
                 {
@@ -63,6 +62,12 @@ public class Dungeon : MonoBehaviour {
                 m = tmpMatrix;
                 _h = z + 1;
             }
+        }
+
+        //restituisce il numero di sovrapposizioni
+        public bool addTile(int x, int z)
+        {
+            enlargeMatrix(x, z);
             if (m[z, x] == 0)
             {
                 m[z, x] = 1; 
@@ -70,9 +75,25 @@ public class Dungeon : MonoBehaviour {
             }
             else 
             {
-                m[z, x] = 2;
+                //m[z, x] = 2;
                 return true;//c'è stata sovrapposizione
             }                       
+        }
+
+        public bool checkOverLap(IntVector2 origin, int width, int height)
+        {
+            string str = "";
+            enlargeMatrix(origin.x + width, origin.z + height);//così sono certo di non incappare in qualchè outofbound
+            for (int j = origin.x; j < (origin.x + width); j++)
+            {
+                for (int i = origin.z; i < (origin.z + height); i++)                   
+                {
+                    str += m[i, j] + ",";
+                    if (m[i, j] == 1) return true;                    
+                }
+                str += "\n";
+            }
+            return false;
         }
 
         public override string ToString()
@@ -100,49 +121,30 @@ public class Dungeon : MonoBehaviour {
     //Genera l'intero dungeon
     public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, Dungeon dungeonContainer)
     {
-        int xMax = 0;
-        int zMax = 0;
         DungeonRoom[] roomArray = new DungeonRoom[roomNum];
         for (int i = 0; i < roomNum; i++)//quest array serve per memorizzare i dati delle stanze
-        {
-            int x = 0;
-            int z = 0;
+        {            
             roomArray[i] = new DungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
-            if (i == 0)
+            roomArray[i].Data.Origin = new IntVector2(0, 0);
+            Debug.Log("x: " + roomArray[i].Data.Origin.x + ", z:" + roomArray[i].Data.Origin.z);
+            roomArray[i].Data.Name = "Room: " + i;
+            while(tileMatrix.checkOverLap(roomArray[i].Data.Origin, roomArray[i].Data.Width, roomArray[i].Data.Height))
             {
-                roomArray[i].Data.Origin = new IntVector2(0, 0);
-                roomArray[i].Data.Name = "Starting-Room: " + i;
-                xMax = roomArray[i].Data.Width;
-                zMax = roomArray[i].Data.Height;
-                //updateTileMatrix(roomArray[i]);
-            }
-            else
-            {
-                int direction = Random.Range(0,2);//scelgo se creare la stanza a destra o sopra il bounding box attaule che racchiude il dungeon
-                switch (direction)
+                int actualX = roomArray[i].Data.Origin.x;
+                int actualZ = roomArray[i].Data.Origin.z;
+                int dir = Random.Range(0, 4);
+                if (dir == 0)
                 {
-                    case 0:
-                        {
-                            x = Random.Range(xMax, xMax);
-                            z = Random.Range(0, zMax);
-                            roomArray[i].Data.Origin = new IntVector2(x, z);
-                            roomArray[i].Data.Name = "Room: " + i;
-                            xMax = roomArray[i].Data.Origin.x + roomArray[i].Data.Width;
-                            zMax = Mathf.Max(zMax, roomArray[i].Data.Height + roomArray[i].Data.Origin.z);
-                            break;
-                        }
-                    case 1:
-                        {
-                            x = Random.Range(0, xMax);
-                            z = Random.Range(zMax, zMax);
-                            roomArray[i].Data.Origin = new IntVector2(x, z);
-                            roomArray[i].Data.Name = "Room: " + i;
-                            zMax = roomArray[i].Data.Origin.z + roomArray[i].Data.Height;
-                            xMax = Mathf.Max(xMax, roomArray[i].Data.Width + roomArray[i].Data.Origin.x);
-                            break;
-                        }
-                }                
+                    Debug.Log("sposto a dx");
+                    roomArray[i].Data.Origin = new IntVector2(actualX + 8, actualZ);
+                }
+                else if( dir == 1 )
+                {
+                    Debug.Log("sposto in alto");
+                    roomArray[i].Data.Origin = new IntVector2(actualX, actualZ + 8);
+                }
             }
+            updateTileMatrix(roomArray[i]);
         }
 
         for (int i = 0; i < roomNum; i++)
@@ -166,81 +168,7 @@ public class Dungeon : MonoBehaviour {
             gameObjectRoomArray[i].name = gameObjectRoomArray[i].Data.Name;
             gameObjectRoomArray[i].transform.localPosition = new Vector3(roomArray[i].Data.Origin.x, 0, roomArray[i].Data.Origin.z);
             gameObjectRoomArray[i].AllocateRoomInSpace();            
-        }
-
-        /*
-        //inizio creazione della stanza nel punto di origine 0,0,0
-        //Debug.Log("*** Creating room ORIGIN ***");
-        DungeonRoom first = Instantiate(dungeonRoomPrefab) as DungeonRoom;
-        first.transform.parent = dungeonContainer.transform;
-        first.transform.localPosition = Vector3.zero;
-        first.generateRoomSize(minWidth, maxWidth, minHeight, maxHeight);
-        first.Data.Name = "Room: 0"; first.name = first.Data.Name;
-        foreach (DungeonCell cell in first.AllocateRoomInSpace())
-        {
-            tileMatrix.addTile(first.Data.Origin.x + cell.Coordinates.x, first.Data.Origin.z + cell.Coordinates.z);
-        }
-        bbWidth = first.Data.Width;//larghezza del bounding box
-        bbHeight = first.Data.Height;//altezza del bounding box
-        //Debug.Log("BB-width: " + bbWidth + " BB-height: " + bbHeight);
-        //Debug.Log("************************");
-        //fine creazione prima stanza
-
-        //creo le stanze successive alla prima
-        for (int i = 1; i < roomNum; i++)
-		{
-            DungeonRoom aRoom = Instantiate(dungeonRoomPrefab) as DungeonRoom;
-            aRoom.transform.parent = dungeonContainer.transform;
-            aRoom.generateRoomSize(minWidth, maxWidth, minHeight, maxHeight);
-            aRoom.Data.Name = "Room: " + i; aRoom.name = aRoom.Data.Name;
-            int direction = Random.Range(0,2);//scelgo se creare la stanza a destra o sopra il bounding box attaule che racchiude il dungeon
-            switch (direction)
-	        {
-                case 0:
-                    {
-                        //Debug.Log("*** Creating room RIGHT ***");
-                        //se si crea a destra l'origne può partire da metà della larghezza del BB fino a 10 unità oltre al BB
-                        aRoom.Data.Origin = new IntVector2(Random.Range((int)Mathf.Ceil(bbWidth / 2.0f), (int)Mathf.Ceil(bbWidth / 2.0f) * 2 + 5), Random.Range(0, bbHeight));
-                        //aRoom.Data.Origin = new IntVector2(Random.Range(bbWidth, bbWidth + 2), Random.Range(0, bbHeight));
-                        //Debug.Log("origin x: " + aRoom.Data.Origin.x + " y: " + aRoom.Data.Origin.z);
-                        //aRoom.transform.localPosition = new Vector3(aRoom.Data.Origin.x, 0, aRoom.Data.Origin.z);                                              
-                        aRoom.transform.localPosition = new Vector3(aRoom.Data.Origin.x, 0, aRoom.Data.Origin.z);
-                        foreach (DungeonCell cell in aRoom.AllocateRoomInSpace())
-                        {
-                            tileMatrix.addTile(aRoom.Data.Origin.x + cell.Coordinates.x, aRoom.Data.Origin.z + cell.Coordinates.z);
-                        }
-                        translateRoom("right", aRoom);
-                        //aggiorno le dimensioni del bounding box in modo che tengano conto della nuova stanza appena creata
-                        bbWidth = aRoom.Data.Origin.x + aRoom.Data.Width;
-                        bbHeight = Mathf.Max(bbHeight, aRoom.Data.Height + aRoom.Data.Origin.z);
-                        //Debug.Log("BB-width: " + bbWidth + " BB-height: " + bbHeight);
-                        //Debug.Log("************************");
-                        break;
-                    }
-                case 1:
-                    {
-                        //Debug.Log("*** Creating room UP ***");
-                        //se si crea la stanza sopra il BB l'origne può partire da metà dell'altezza del BB fino a 10 unità oltre l'altezza del BB
-                        aRoom.Data.Origin = new IntVector2(Random.Range(0, bbWidth), Random.Range((int)Mathf.Ceil(bbHeight / 2.0f), (int)Mathf.Ceil(bbHeight / 2.0f) * 2 + 5));
-                        //aRoom.Data.Origin = new IntVector2(Random.Range(0, bbWidth), Random.Range(bbHeight,bbHeight + 2));
-                        //Debug.Log("origin x: " + aRoom.Data.Origin.x + " y: " + aRoom.Data.Origin.z);
-                        aRoom.transform.localPosition = new Vector3(aRoom.Data.Origin.x, 0, aRoom.Data.Origin.z);                        
-                        aRoom.transform.localPosition = new Vector3(aRoom.Data.Origin.x, 0, aRoom.Data.Origin.z);
-                        foreach (DungeonCell cell in aRoom.AllocateRoomInSpace())
-                        {
-                            tileMatrix.addTile(aRoom.Data.Origin.x + cell.Coordinates.x, aRoom.Data.Origin.z + cell.Coordinates.z);
-                        }
-                        translateRoom("up", aRoom);
-                        //aggiorno le dimensioni del bounding box in modo che tengano conto della nuova stanza appena creata
-                        bbWidth = Mathf.Max(bbWidth, aRoom.Data.Width + aRoom.Data.Origin.x);
-                        bbHeight = aRoom.Data.Origin.z + aRoom.Data.Height;
-                        //Debug.Log("BB-width: " + bbWidth + " BB-height: " + bbHeight);
-                        //Debug.Log("************************");
-                        break;
-                    }
-	        }
-		}*/
-        //Debug.Log(tileMatrix);
+        }        
 	}//fine generate
 
     private void translateRoom(string direction, DungeonRoom aRoom)
