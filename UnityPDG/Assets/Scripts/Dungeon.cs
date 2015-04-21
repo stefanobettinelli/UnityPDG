@@ -100,10 +100,11 @@ public class Dungeon : MonoBehaviour {
     //Genera l'intero dungeon
     public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, Dungeon dungeonContainer)
     {
-        int xMin = 0;
         int xMax = 0;
-        int zMin = 0;
         int zMax = 0;
+        int xLimit = (int) Mathf.Sqrt(maxWidth * maxHeight * roomNum);
+        int zLimit = xLimit;
+        Debug.Log(xLimit);
         DungeonRoom[] roomArray = new DungeonRoom[roomNum];
         for (int i = 0; i < roomNum; i++)//quest array serve per memorizzare i dati delle stanze
         {
@@ -114,36 +115,18 @@ public class Dungeon : MonoBehaviour {
             {
                 roomArray[i].Data.Origin = new IntVector2(0, 0);
                 roomArray[i].Data.Name = "Starting-Room: " + i;
-                xMin = zMin = 0;
                 xMax = roomArray[i].Data.Width;
                 zMax = roomArray[i].Data.Height;
                 //updateTileMatrix(roomArray[i]);
             }
             else
-            {
-                int direction = Random.Range(0,4);//scelgo se creare la stanza a destra o sopra il bounding box attaule che racchiude il dungeon
-                if (direction == 0)
-                {
-                    x = Random.Range(xMax, xMax);
-                    z = Random.Range(zMin, zMax - roomArray[i].Data.Height);
-                    roomArray[i].Data.Origin = new IntVector2(x, z);
-                    roomArray[i].Data.Name = "Room-right: " + i; 
-                    xMax = (int) (1f * (roomArray[i].Data.Origin.x + roomArray[i].Data.Width));
-                    zMax = (int) (1f * Mathf.Max(zMax, roomArray[i].Data.Height + roomArray[i].Data.Origin.z));
-                    //updateTileMatrix(roomArray[i]);
-                    //translateRoom("",roomArray[i]);
-                }
-                else if(direction == 1)
-                {
-                    x = Random.Range(xMin,xMax - roomArray[i].Data.Width);
-                    z = Random.Range(zMax, zMax);
-                    roomArray[i].Data.Origin = new IntVector2(x, z);
-                    roomArray[i].Data.Name = "Room-up: " + i; 
-                    xMax = (int) (1f * Mathf.Max(xMax, roomArray[i].Data.Width + roomArray[i].Data.Origin.x));
-                    zMax = (int) (1f * (roomArray[i].Data.Origin.z + roomArray[i].Data.Height));
-                    //updateTileMatrix(roomArray[i]);
-                    //translateRoom("", roomArray[i]);
-                }                                              
+            {                
+                x = Random.Range(0, xLimit);
+                z = Random.Range(0, zLimit);
+                roomArray[i].Data.Origin = new IntVector2(x, z);
+                roomArray[i].Data.Name = "Room: " + i; 
+                //xMax = roomArray[i].Data.Origin.x + roomArray[i].Data.Width));
+                //zMax = (int) (1f * Mathf.Max(zMax, roomArray[i].Data.Height + roomArray[i].Data.Origin.z));                          
             }
         }
 
