@@ -102,9 +102,6 @@ public class Dungeon : MonoBehaviour {
     {
         int xMax = 0;
         int zMax = 0;
-        int xLimit = (int) Mathf.Sqrt(maxWidth * maxHeight * roomNum);
-        int zLimit = xLimit;
-        Debug.Log(xLimit);
         DungeonRoom[] roomArray = new DungeonRoom[roomNum];
         for (int i = 0; i < roomNum; i++)//quest array serve per memorizzare i dati delle stanze
         {
@@ -120,13 +117,31 @@ public class Dungeon : MonoBehaviour {
                 //updateTileMatrix(roomArray[i]);
             }
             else
-            {                
-                x = Random.Range(0, xLimit);
-                z = Random.Range(0, zLimit);
-                roomArray[i].Data.Origin = new IntVector2(x, z);
-                roomArray[i].Data.Name = "Room: " + i; 
-                //xMax = roomArray[i].Data.Origin.x + roomArray[i].Data.Width));
-                //zMax = (int) (1f * Mathf.Max(zMax, roomArray[i].Data.Height + roomArray[i].Data.Origin.z));                          
+            {
+                int direction = Random.Range(0,2);//scelgo se creare la stanza a destra o sopra il bounding box attaule che racchiude il dungeon
+                switch (direction)
+                {
+                    case 0:
+                        {
+                            x = Random.Range(xMax, xMax);
+                            z = Random.Range(0, zMax);
+                            roomArray[i].Data.Origin = new IntVector2(x, z);
+                            roomArray[i].Data.Name = "Room: " + i;
+                            xMax = roomArray[i].Data.Origin.x + roomArray[i].Data.Width;
+                            zMax = Mathf.Max(zMax, roomArray[i].Data.Height + roomArray[i].Data.Origin.z);
+                            break;
+                        }
+                    case 1:
+                        {
+                            x = Random.Range(0, xMax);
+                            z = Random.Range(zMax, zMax);
+                            roomArray[i].Data.Origin = new IntVector2(x, z);
+                            roomArray[i].Data.Name = "Room: " + i;
+                            zMax = roomArray[i].Data.Origin.z + roomArray[i].Data.Height;
+                            xMax = Mathf.Max(xMax, roomArray[i].Data.Width + roomArray[i].Data.Origin.x);
+                            break;
+                        }
+                }                
             }
         }
 
