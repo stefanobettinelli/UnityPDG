@@ -90,12 +90,6 @@ public class DungeonRoom: MonoBehaviour {
         }
     }
 
-    //controlla se la stanza passata come parametro si sovrappone a "this" stanza
-    public bool overLap(DungeonRoom aRoom)
-    {
-        return false;
-    }
-
     public override string ToString()
     {
         string str = " " + data;

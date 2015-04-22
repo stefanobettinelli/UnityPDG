@@ -122,7 +122,9 @@ public class Dungeon : MonoBehaviour {
     public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, Dungeon dungeonContainer)
     {
         DungeonRoom[] roomArray = new DungeonRoom[roomNum];
-        for (int i = 0; i < roomNum; i++)//quest array serve per memorizzare i dati delle stanze
+        int upShift = 0;
+        int rightShift = 0;
+        for (int i = 0; i < roomNum; i++)//questo array serve per memorizzare i dati delle stanze
         {            
             roomArray[i] = new DungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
             roomArray[i].Data.Origin = new IntVector2(0, 0);
@@ -132,33 +134,25 @@ public class Dungeon : MonoBehaviour {
             {
                 int actualX = roomArray[i].Data.Origin.x;
                 int actualZ = roomArray[i].Data.Origin.z;
-                int dir = Random.Range(0, 4);
+                int dir = Random.Range(0, 2);
                 if (dir == 0)
                 {
                     Debug.Log("sposto a dx");
-                    roomArray[i].Data.Origin = new IntVector2(actualX + 8, actualZ);
+                    roomArray[i].Data.Origin = new IntVector2(actualX + 5, actualZ);
+                    rightShift++;
                 }
                 else if( dir == 1 )
                 {
                     Debug.Log("sposto in alto");
-                    roomArray[i].Data.Origin = new IntVector2(actualX, actualZ + 8);
+                    roomArray[i].Data.Origin = new IntVector2(actualX, actualZ + 5);
+                    upShift++;
                 }
             }
-            updateTileMatrix(roomArray[i]);
-        }
+            updateTileMatrix(roomArray[i]);            
+        }        
 
-        for (int i = 0; i < roomNum; i++)
-        {
-            for (int j = i+1; j < roomNum; j++)
-            {
-                if(roomArray[i].overLap(roomArray[j])){//se c'è sovrapposizione vanno staccati
-
-                }
-            }
-        }
-
+        //comincia la creazione delle stanze nello spazio 3D
         DungeonRoom[] gameObjectRoomArray = new DungeonRoom[roomNum];
-
         for (int i = 0; i < roomNum; i++)
         {
             gameObjectRoomArray[i] = Instantiate(dungeonRoomPrefab) as DungeonRoom;
@@ -168,7 +162,11 @@ public class Dungeon : MonoBehaviour {
             gameObjectRoomArray[i].name = gameObjectRoomArray[i].Data.Name;
             gameObjectRoomArray[i].transform.localPosition = new Vector3(roomArray[i].Data.Origin.x, 0, roomArray[i].Data.Origin.z);
             gameObjectRoomArray[i].AllocateRoomInSpace();            
-        }        
+        }
+
+        Debug.Log("right: " + rightShift);
+        Debug.Log("up: " + upShift);
+  
 	}//fine generate
 
     private void translateRoom(string direction, DungeonRoom aRoom)
