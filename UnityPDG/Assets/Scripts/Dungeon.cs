@@ -119,7 +119,7 @@ public class Dungeon : MonoBehaviour {
     public string DungeonName{ get { return dungeonName; } set { dungeonName = value; } }
 
     //Genera l'intero dungeon
-    public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, Dungeon dungeonContainer)
+    public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, Dungeon dungeonContainer, int minShitValue)
     {
         DungeonRoom[] roomArray = new DungeonRoom[roomNum];
         int upShift = 0;
@@ -138,13 +138,13 @@ public class Dungeon : MonoBehaviour {
                 if (dir == 0)
                 {
                     Debug.Log("sposto a dx");
-                    roomArray[i].Data.Origin = new IntVector2(actualX + 5, actualZ);
+                    roomArray[i].Data.Origin = new IntVector2(actualX + minShitValue, actualZ);
                     rightShift++;
                 }
                 else if( dir == 1 )
                 {
                     Debug.Log("sposto in alto");
-                    roomArray[i].Data.Origin = new IntVector2(actualX, actualZ + 5);
+                    roomArray[i].Data.Origin = new IntVector2(actualX, actualZ + minShitValue);
                     upShift++;
                 }
             }

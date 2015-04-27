@@ -13,6 +13,8 @@ public class DungeonEditor :  EditorWindow{
     public int maxWidth;
     public int maxHeight;
     public int roomNum;
+    public int minPadding;
+    int minShitValue;
 
 
 	[MenuItem("Window/Dungeon Generator Editor")]
@@ -37,9 +39,10 @@ public class DungeonEditor :  EditorWindow{
         minHeight = EditorGUILayout.IntField("Min Room Height:", minHeight);
         maxHeight = EditorGUILayout.IntField("Max Room Height:", maxHeight);
         roomNum = EditorGUILayout.IntField("Room Number:", roomNum);
+        minShitValue = EditorGUILayout.IntField("Min. Shift Value:", minShitValue);
         if (GUILayout.Button("Generate a Dungeon"))
         {
-            dungeonInstance = dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight, roomNum);        
+            dungeonInstance = dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight, roomNum, minShitValue);        
         }
         if (GUILayout.Button("Destroy Dungeon"))
         {
