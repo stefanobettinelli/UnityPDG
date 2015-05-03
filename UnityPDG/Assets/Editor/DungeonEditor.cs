@@ -31,7 +31,7 @@ public class DungeonEditor :  EditorWindow{
 
 	void OnGUI () 
     {
-        GUILayout.Label("Base Settings", EditorStyles.boldLabel);
+        GUILayout.Label("Dunegon Generator Parameter", EditorStyles.boldLabel);
         dungeonName = EditorGUILayout.TextField("Dungeon Name", dungeonName);
         dungeonGeneratorInstance = (DungeonGenerator)EditorGUILayout.ObjectField("Dungeon Generator", dungeonGeneratorInstance, typeof(DungeonGenerator), false);
         minWidth = EditorGUILayout.IntField("Min Room Width:", minWidth);

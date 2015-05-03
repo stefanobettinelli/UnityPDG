@@ -54,6 +54,23 @@ public class DungeonRoom: MonoBehaviour {
         return newDungeonCell;
     }
 
+    //i parametri sono i valori di shit usati nell'algoritmo che sistema le stanze in modo che non ci siano sovrapposizioni in Dungeon.cs
+    public void moveRoom(int minShitValueX, int minShitValueZ)
+    {
+        int actualX = data.Origin.x;
+        int actualZ = data.Origin.z;
+        data.Origin = new IntVector2(actualX + minShitValueX, actualZ + minShitValueZ);
+        data.Center = new IntVector2((int)Mathf.Floor(data.Width / 2) + data.Origin.x, (int)Mathf.Floor(data.Width / 2) + data.Origin.z);
+    }
+
+    public int distance(DungeonRoom aRoom)
+    {
+        int c1 = Mathf.Abs(data.Center.x - aRoom.data.Center.x) + 1;
+        int c2 = Mathf.Abs(data.Center.z - aRoom.data.Center.z) + 1;
+        int distance = (int) Mathf.Round(Mathf.Sqrt(Mathf.Pow(c1, 2) + Mathf.Pow(c2, 2)));
+        return distance;
+    }
+
     public List<DungeonCell> AllocateRoomInSpace()
     {
         for (int x = 0; x < Data.Width; x++)

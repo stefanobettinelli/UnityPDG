@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEditor;
+
 using System.Collections;
 using System.Collections.Generic;
 
@@ -11,6 +13,18 @@ public class Dungeon : MonoBehaviour {
 	private int _minRoomHeight;
 	private int _maxRoomHeight;
     private string dungeonName;
+
+    private struct centerPair
+    {
+        public Vector3 _c1;
+        public Vector3 _c2;
+        public centerPair(Vector3 c1, Vector3 c2)
+        {
+            _c1 = c1;
+            _c2 = c2;
+        }
+    };
+    private List<centerPair> centerList = new List<centerPair>();
 
     /*
      * Struttura dati specifica per memorizzare le singole mattonelle attivi nello spazio,
@@ -121,35 +135,62 @@ public class Dungeon : MonoBehaviour {
     //Genera l'intero dungeon
     public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, Dungeon dungeonContainer, int minShitValue)
     {
-        DungeonRoom[] roomArray = new DungeonRoom[roomNum];
-        int upShift = 0;
-        int rightShift = 0;
+        DungeonRoom[] roomArray = new DungeonRoom[roomNum];        
         for (int i = 0; i < roomNum; i++)//questo array serve per memorizzare i dati delle stanze
         {            
             roomArray[i] = new DungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
-            roomArray[i].Data.Origin = new IntVector2(0, 0);
-            Debug.Log("x: " + roomArray[i].Data.Origin.x + ", z:" + roomArray[i].Data.Origin.z);
+            roomArray[i].Data.Origin = new IntVector2(0, 0);            
             roomArray[i].Data.Name = "Room: " + i;
             while(tileMatrix.checkOverLap(roomArray[i].Data.Origin, roomArray[i].Data.Width, roomArray[i].Data.Height))
             {
-                int actualX = roomArray[i].Data.Origin.x;
-                int actualZ = roomArray[i].Data.Origin.z;
                 int dir = Random.Range(0, 2);
                 if (dir == 0)
                 {
-                    Debug.Log("sposto a dx");
-                    roomArray[i].Data.Origin = new IntVector2(actualX + minShitValue, actualZ);
-                    rightShift++;
+                    //Debug.Log("sposto a dx");
+                    roomArray[i].moveRoom(minShitValue,0);
                 }
                 else if( dir == 1 )
                 {
-                    Debug.Log("sposto in alto");
-                    roomArray[i].Data.Origin = new IntVector2(actualX, actualZ + minShitValue);
-                    upShift++;
+                    //Debug.Log("sposto in alto");
+                    roomArray[i].moveRoom(0,minShitValue);
                 }
             }
-            updateTileMatrix(roomArray[i]);            
-        }        
+            updateTileMatrix(roomArray[i]);
+            Debug.Log(roomArray[i]);
+        }
+        
+        //forse questo pezzo di codice necessita di un modulo a se stante
+        int ijDist, ikDist, jkDist;
+        bool skip = false;
+        for(int i = 0; i < roomNum; i++ ){
+            for (int j = i + 1; j < roomNum; j++ )
+            {
+                skip = false;
+                ijDist = roomArray[i].distance(roomArray[j]);
+                //Debug.Log("Distanza tra stanza :" + i + "e stanza:" + j + " = " + ijDist);
+                //per ogni coppia di stanze (i,j) controllo che non esista un terzo nodo k t.c Dmax sia minore della d(i,j)
+                for (int k = 0; k < roomNum; k++)
+                {
+                    if( k == i || k == j )
+                        continue;
+                    ikDist = roomArray[i].distance(roomArray[k]);
+                    jkDist = roomArray[j].distance(roomArray[k]);
+                    if( Mathf.Max(ikDist,jkDist) < ijDist ){
+                        skip = true;
+                        break;
+                    }
+                }
+                if(!skip){//se la prima coppia scelta non è stata schippata vuol dire che il suo arco può essere aggiunto al grafo
+                    //per ora lo disegno e basta
+                    Gizmos.color = Color.blue;
+                    Debug.Log("linea tra " + roomArray[i].Data.Name + " e " + roomArray[j].Data.Name);
+                    Vector3 c1 = new Vector3(roomArray[i].Data.Center.x, 3, roomArray[i].Data.Center.z);
+                    Vector3 c2 = new Vector3(roomArray[j].Data.Center.x, 3, roomArray[j].Data.Center.z);
+                    centerList.Add(new centerPair(c1, c2));                   
+                    //Gizmos.DrawLine(new Vector3(roomArray[i].Data.Center.x, 3, roomArray[i].Data.Center.z), new Vector3(roomArray[j].Data.Center.x, 3, roomArray[j].Data.Center.z));
+                }
+            }
+        }
 
         //comincia la creazione delle stanze nello spazio 3D
         DungeonRoom[] gameObjectRoomArray = new DungeonRoom[roomNum];
@@ -163,11 +204,17 @@ public class Dungeon : MonoBehaviour {
             gameObjectRoomArray[i].transform.localPosition = new Vector3(roomArray[i].Data.Origin.x, 0, roomArray[i].Data.Origin.z);
             gameObjectRoomArray[i].AllocateRoomInSpace();            
         }
-
-        Debug.Log("right: " + rightShift);
-        Debug.Log("up: " + upShift);
   
 	}//fine generate
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        foreach (var c in centerList)
+        {
+            Gizmos.DrawLine(c._c1,c._c2);            
+        }        
+    }
 
     private void translateRoom(string direction, DungeonRoom aRoom)
     {
@@ -223,6 +270,6 @@ public class Dungeon : MonoBehaviour {
                 tileMatrix.addTile(aRoom.Data.Origin.x + i, aRoom.Data.Origin.z + j);
             }   
         }            
-    }
+    }    
 
 }
