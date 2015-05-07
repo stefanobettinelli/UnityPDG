@@ -43,6 +43,8 @@ public class DungeonRoom: MonoBehaviour {
 
     }
 
+
+    //crea una mattonella del pavimento nelle coordinate "coordinates"
     private DungeonCell CreateCell(IntVector2 coordinates)
     {
         DungeonCell newDungeonCell = Instantiate(dungeonCellPrefab) as DungeonCell;
@@ -50,7 +52,7 @@ public class DungeonRoom: MonoBehaviour {
         newDungeonCell.name = "Dungeon Cell " + coordinates.x + ", " + coordinates.z;
         newDungeonCell.Coordinates = coordinates;
         newDungeonCell.transform.parent = transform; //fa diventare tutte le celle generate figlie del game object Dungeon
-        newDungeonCell.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);
+        newDungeonCell.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);       
         return newDungeonCell;
     }
 
@@ -60,7 +62,7 @@ public class DungeonRoom: MonoBehaviour {
         int actualX = data.Origin.x;
         int actualZ = data.Origin.z;
         data.Origin = new IntVector2(actualX + minShitValueX, actualZ + minShitValueZ);
-        data.Center = new IntVector2((int)Mathf.Floor(data.Width / 2) + data.Origin.x, (int)Mathf.Floor(data.Width / 2) + data.Origin.z);
+        data.Center = new IntVector2((int)Mathf.Floor(data.Width / 2) + data.Origin.x, (int)Mathf.Floor(data.Height / 2) + data.Origin.z);
     }
 
     public int distance(DungeonRoom aRoom)

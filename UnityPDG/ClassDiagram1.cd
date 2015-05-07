@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Directions">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAgAAAABACAAAFAAAAAAAAAAAIAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Direction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Dungeon">
+    <Position X="11.75" Y="3.25" Width="2.75" />
+    <NestedTypes>
+      <Struct Name="Dungeon.centerPair" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\Scripts\Dungeon.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+      <Struct Name="Dungeon.TileMatrix" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\Scripts\Dungeon.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>IAEkACACBACAIAAAAgAAAAQAAABAAAAAAAAAEGAIEAA=</HashCode>
+      <FileName>Assets\Scripts\Dungeon.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="dungeonRoomPrefab" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="DungeonCell" Collapsed="true">
+    <Position X="5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAAEAAAAAAAAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\DungeonCell.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DungeonGenerator" BaseTypeListCollapsed="true">
+    <Position X="12.5" Y="0.75" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAQAAAAAQAAAAAAACAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\DungeonGenerator.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_dungeonInstance" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="DungeonRoom">
+    <Position X="7.5" Y="3.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AggAAAAAAAAAAAgEAQAQAAABAEBAAhAAAQAQAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\DungeonRoom.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="data" />
+      <Field Name="wallPrefab" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="NormalizedRandom">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\NormalizedRandom.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RoomData">
+    <Position X="5.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAQABACAAAAEAAAAAEQAABAAAAAAAAAAAQkIAAE=</HashCode>
+      <FileName>Assets\Scripts\RoomData.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_center" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="WallUnit" Collapsed="true">
+    <Position X="5" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\WallUnit.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="cell" />
+    </ShowAsAssociation>
+  </Class>
+  <Struct Name="IntVector2" Collapsed="true">
+    <Position X="3" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEQAAAAAAAAAAAAAAAAABAAQAAQAE=</HashCode>
+      <FileName>Assets\Scripts\IntVector2.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Interface Name="DungeonGeneratorInterface">
+    <Position X="0.5" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\DungeonGeneratorInterface.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="Direction">
+    <Position X="0.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAABAAQ=</HashCode>
+      <FileName>Assets\Scripts\Direction.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

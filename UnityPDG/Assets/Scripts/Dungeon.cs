@@ -7,6 +7,7 @@ using System.Collections.Generic;
 public class Dungeon : MonoBehaviour {
 
     public DungeonRoom dungeonRoomPrefab;
+    public DungeonCell dungeonCellPrefab;
 
 	private int _minRoomWidth;
 	private int _maxRoomWidth;
@@ -46,12 +47,14 @@ public class Dungeon : MonoBehaviour {
 
         public int this[int i, int j] { get { return m[i, j]; } }
 
+
+        //espande la tileMatrix
         public void enlargeMatrix(int x, int z)
         {
             if (x >= _w)
             {
                 int[,] tmpMatrix = new int[_h, x + 1];
-                //System.Array.Copy(m, tmpMatrix, _w * _h);
+                //copio il vecchio contenuto nella matrice espansa
                 for (int j = 0; j < _w; j++)
                 {
                     for (int i = 0; i < _h; i++)
@@ -65,7 +68,7 @@ public class Dungeon : MonoBehaviour {
             if (z >= _h)
             {
                 int[,] tmpMatrix = new int[z + 1, _w];
-                //System.Array.Copy(m, tmpMatrix, _w * _h);
+                //copio il vecchio contenuto nella matrice espansa
                 for (int j = 0; j < _w; j++)
                 {
                     for (int i = 0; i < _h; i++)
@@ -94,20 +97,22 @@ public class Dungeon : MonoBehaviour {
             }                       
         }
 
+        //controlla se nella tilematrix si crea una sovrapposizione se si piazza la stanza in origin di dimensioni widthxheight
         public bool checkOverLap(IntVector2 origin, int width, int height)
         {
             string str = "";
+            //espansione della tilematrix prima di tutto
             enlargeMatrix(origin.x + width, origin.z + height);//così sono certo di non incappare in qualchè outofbound
             for (int j = origin.x; j < (origin.x + width); j++)
             {
                 for (int i = origin.z; i < (origin.z + height); i++)                   
                 {
                     str += m[i, j] + ",";
-                    if (m[i, j] == 1) return true;                    
+                    if (m[i, j] == 1) return true; //esiste sovrapposizione                   
                 }
                 str += "\n";
             }
-            return false;
+            return false; //non c'è sovrapposizione
         }
 
         public override string ToString()
@@ -135,7 +140,8 @@ public class Dungeon : MonoBehaviour {
     //Genera l'intero dungeon
     public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, Dungeon dungeonContainer, int minShitValue)
     {
-        DungeonRoom[] roomArray = new DungeonRoom[roomNum];        
+        DungeonRoom[] roomArray = new DungeonRoom[roomNum];
+        //algoritmo di separazione
         for (int i = 0; i < roomNum; i++)//questo array serve per memorizzare i dati delle stanze
         {            
             roomArray[i] = new DungeonRoom(minWidth, maxWidth, minHeight, maxHeight);
@@ -156,41 +162,8 @@ public class Dungeon : MonoBehaviour {
                 }
             }
             updateTileMatrix(roomArray[i]);
-            Debug.Log(roomArray[i]);
-        }
-        
-        //forse questo pezzo di codice necessita di un modulo a se stante
-        int ijDist, ikDist, jkDist;
-        bool skip = false;
-        for(int i = 0; i < roomNum; i++ ){
-            for (int j = i + 1; j < roomNum; j++ )
-            {
-                skip = false;
-                ijDist = roomArray[i].distance(roomArray[j]);
-                //Debug.Log("Distanza tra stanza :" + i + "e stanza:" + j + " = " + ijDist);
-                //per ogni coppia di stanze (i,j) controllo che non esista un terzo nodo k t.c Dmax sia minore della d(i,j)
-                for (int k = 0; k < roomNum; k++)
-                {
-                    if( k == i || k == j )
-                        continue;
-                    ikDist = roomArray[i].distance(roomArray[k]);
-                    jkDist = roomArray[j].distance(roomArray[k]);
-                    if( Mathf.Max(ikDist,jkDist) < ijDist ){
-                        skip = true;
-                        break;
-                    }
-                }
-                if(!skip){//se la prima coppia scelta non è stata schippata vuol dire che il suo arco può essere aggiunto al grafo
-                    //per ora lo disegno e basta
-                    Gizmos.color = Color.blue;
-                    Debug.Log("linea tra " + roomArray[i].Data.Name + " e " + roomArray[j].Data.Name);
-                    Vector3 c1 = new Vector3(roomArray[i].Data.Center.x, 3, roomArray[i].Data.Center.z);
-                    Vector3 c2 = new Vector3(roomArray[j].Data.Center.x, 3, roomArray[j].Data.Center.z);
-                    centerList.Add(new centerPair(c1, c2));                   
-                    //Gizmos.DrawLine(new Vector3(roomArray[i].Data.Center.x, 3, roomArray[i].Data.Center.z), new Vector3(roomArray[j].Data.Center.x, 3, roomArray[j].Data.Center.z));
-                }
-            }
-        }
+            //Debug.Log(roomArray[i]);
+        }//fine algoritmo di separazione
 
         //comincia la creazione delle stanze nello spazio 3D
         DungeonRoom[] gameObjectRoomArray = new DungeonRoom[roomNum];
@@ -204,8 +177,139 @@ public class Dungeon : MonoBehaviour {
             gameObjectRoomArray[i].transform.localPosition = new Vector3(roomArray[i].Data.Origin.x, 0, roomArray[i].Data.Origin.z);
             gameObjectRoomArray[i].AllocateRoomInSpace();            
         }
+
+        //algoritmo di connessione O(n^3)
+        int ijDist, ikDist, jkDist;
+        bool skip = false;
+        for (int i = 0; i < roomNum; i++)
+        {
+            for (int j = i + 1; j < roomNum; j++)
+            {
+                skip = false;
+                ijDist = roomArray[i].distance(roomArray[j]);
+                //Debug.Log("Distanza tra stanza :" + i + "e stanza:" + j + " = " + ijDist);
+                //per ogni coppia di stanze (i,j) controllo che non esista un terzo nodo k t.c Dmax sia minore della d(i,j)
+                for (int k = 0; k < roomNum; k++)
+                {
+                    if (k == i || k == j)
+                        continue;
+                    ikDist = roomArray[i].distance(roomArray[k]);
+                    jkDist = roomArray[j].distance(roomArray[k]);
+                    if (Mathf.Max(ikDist, jkDist) < ijDist)
+                    {
+                        skip = true;
+                        break;
+                    }
+                }
+                if (!skip)
+                {//se la prima coppia scelta non è stata schippata vuol dire che il suo arco può essere aggiunto al grafo
+                    //per ora lo disegno e basta
+                    Gizmos.color = Color.blue;
+                    //Debug.Log("linea tra " + roomArray[i].Data.Name + " e " + roomArray[j].Data.Name);
+                    Vector3 c1 = new Vector3(roomArray[i].Data.Center.x, 3, roomArray[i].Data.Center.z);
+                    Vector3 c2 = new Vector3(roomArray[j].Data.Center.x, 3, roomArray[j].Data.Center.z);
+                    centerList.Add(new centerPair(c1, c2));
+                    //createCorridor(gameObjectRoomArray[i], gameObjectRoomArray[j]); // va passato il gameobject istanziato nello spazio e non il roomArray[i]
+                }
+            }
+        }//fine algoritmo di connessione
+
+        Debug.Log(tileMatrix);
   
 	}//fine generate
+
+    //crea il corridoio di connessione fatto da unità base di "tile" che connette la stanza A e B
+    private void createCorridor(DungeonRoom roomA, DungeonRoom roomB)
+    {
+        int dir = Random.Range(0,2);
+        int dx = roomA.Data.Center.x - roomB.Data.Center.x;
+        int dz = roomA.Data.Center.z - roomB.Data.Center.z;
+        switch (dir)
+        {
+            case 0:
+                {
+                    IntVector2 lastP = creatHorizontalCorridor(roomA.Data.Center, dx);//crea il pezzo di corridoio orizzontale partendo dalla stanza A
+                    createVerticalCorridor(lastP, dz);////crea il pezzo di corridoio verticale partendo dalla stanza A
+                    Debug.Log("----- Stanza " + roomA.Data.Name + " collegata con stanza " + roomB.Data.Name);
+                    break;
+                }
+            case 1:
+                {
+                    IntVector2 lastP = createVerticalCorridor(roomA.Data.Center, dz);////crea il pezzo di corridoio verticale partendo dalla stanza A
+                    creatHorizontalCorridor(lastP, dx);//crea il pezzo di corridoio orizzontale partendo dalla stanza A
+                    Debug.Log("----- Stanza " + roomA.Data.Name + " collegata con stanza " + roomB.Data.Name);
+                    break;
+                }
+            default:
+                break;
+        }
+    }
+
+    private IntVector2 creatHorizontalCorridor(IntVector2 startPos, int lenght)
+    {
+        for (int i = 0; i < Mathf.Abs(lenght); i++)
+        {
+            if (lenght < 0)
+            {
+                Debug.Log("tile corridoio in pos: (" + (startPos.x + 1) + ", " + (startPos.z) + ")");
+                startPos = new IntVector2(startPos.x + 1, startPos.z);
+                createCorridorTile(startPos);
+                Debug.Log(startPos);
+            }
+            else if (lenght > 0)
+            {
+                Debug.Log("tile corridoio in pos: (" + (startPos.x - 1) + ", " + (startPos.z) + ")");
+                startPos = new IntVector2(startPos.x - 1, startPos.z);
+                createCorridorTile(startPos);
+                Debug.Log(startPos);
+            }
+        }
+        return startPos;
+    }
+
+    private IntVector2 createVerticalCorridor(IntVector2 startPos, int lenght)
+    {
+        for (int i = 0; i < Mathf.Abs(lenght); i++)
+        {
+            if (lenght < 0)
+            {
+                Debug.Log("tile corridoio in pos: (" + startPos.x + ", " + (startPos.z + 1) + ")");
+                startPos = new IntVector2(startPos.x, startPos.z + 1);
+                createCorridorTile(startPos);
+                Debug.Log(startPos);
+            }
+            else if (lenght > 0)
+            {
+                Debug.Log("tile corridoio in pos: (" + startPos.x + ", " + (startPos.z - 1) + ")");
+                startPos = new IntVector2(startPos.x, startPos.z - 1);
+                createCorridorTile(startPos);
+                Debug.Log(startPos);
+            }
+        }
+        return startPos;
+    }
+
+    private void createCorridorTile(IntVector2 c)
+    {
+        //if (tileMatrix[c.z, c.x] == 0)
+        {//se non c'è sovrapposizione crea la mattonella del corridoio
+            //tileMatrix.addTile(c.z,c.x) == false
+            //Debug.Log(tileMatrix[c.z,c.x]);
+            Debug.Log("dovrei fare addTile su: " + c.x + ", " + c.z);
+            CreateCorridorCell(c);
+        }
+    }
+
+    //crea una mattonella del pavimento nelle coordinate "coordinates"
+    private DungeonCell CreateCorridorCell(IntVector2 coordinates)
+    {
+        DungeonCell newDungeonCell = Instantiate(dungeonCellPrefab) as DungeonCell;
+        //cells[coordinates.x,coordinates.z] = newDungeonCell;
+        newDungeonCell.name = "Dungeon Cell " + coordinates.x + ", " + coordinates.z;
+        newDungeonCell.Coordinates = coordinates;        
+        newDungeonCell.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);
+        return newDungeonCell;
+    }
 
     void OnDrawGizmos()
     {

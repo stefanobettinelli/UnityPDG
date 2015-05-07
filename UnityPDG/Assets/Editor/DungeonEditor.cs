@@ -20,7 +20,6 @@ public class DungeonEditor :  EditorWindow{
 	[MenuItem("Window/Dungeon Generator Editor")]
     static void  ShowWindow () 
     {
-
 		EditorWindow.GetWindow(typeof(DungeonEditor));
 	}
 
