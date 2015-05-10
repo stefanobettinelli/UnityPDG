@@ -14,7 +14,7 @@ public class DungeonEditor :  EditorWindow{
     public int maxHeight;
     public int roomNum;
     public int minPadding;
-    int minShitValue;
+    public int minShitValue;
 
 
 	[MenuItem("Window/Dungeon Generator Editor")]

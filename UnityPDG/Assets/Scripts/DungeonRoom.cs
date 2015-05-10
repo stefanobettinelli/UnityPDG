@@ -8,7 +8,7 @@ public class DungeonRoom: MonoBehaviour {
     public WallUnit wallPrefab;
 
     private RoomData data;
-    private List<DungeonCell> activeCells = new List<DungeonCell>();
+    public List<DungeonCell> activeCells = new List<DungeonCell>();
 
     public RoomData Data { get { return data; } set { data = value; } }
 
@@ -34,12 +34,13 @@ public class DungeonRoom: MonoBehaviour {
         data = new RoomData(aWidth, aHeight);
     }
 
-    private void InstanciateWall(IntVector2 wallDirection, Direction direction, DungeonCell cell)
+    private WallUnit InstanciateWall(IntVector2 wallDirection, Direction direction, DungeonCell cell)
     {
         WallUnit aWall = Instantiate(wallPrefab) as WallUnit;
         aWall.transform.parent = cell.transform;
         aWall.transform.localPosition = new Vector3(wallDirection.x, 0.5f, wallDirection.z);
         aWall.transform.localRotation = direction.ToRotation();
+        return aWall;
 
     }
 
@@ -89,23 +90,30 @@ public class DungeonRoom: MonoBehaviour {
         return activeCells;
     }
 
+    //questa funzione oltre ad istanziare un game object muro per un cella, salva anche il riferimento al
+    //muro nella cella in modo che in fase di creazine dei corridoi si riescano a rimuovere le celle di muro
+    //per creare i collegamenti
     private void CreateWall(int x, int z, int width, int height, DungeonCell cell)
     {
         if (z == 0 && x >= 0 && x < width)
         {
-            InstanciateWall(Directions.directionVectors[(int)Direction.South], Direction.South, cell);
+            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.South], Direction.South, cell);
+            cell.addWallRefenceToCell(aWall,"south");
         }
         if (z == height - 1 && x >= 0 && x < width)
         {
-            InstanciateWall(Directions.directionVectors[(int)Direction.North], Direction.North, cell);
+            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.North], Direction.North, cell);
+            cell.addWallRefenceToCell(aWall, "north");
         }
         if (x == 0 && z >= 0 && z < height)
         {
-            InstanciateWall(Directions.directionVectors[(int)Direction.West], Direction.West, cell);
+            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.West], Direction.West, cell);
+            cell.addWallRefenceToCell(aWall, "west");
         }
         if (x == width - 1 && z >= 0 && z < height)
         {
-            InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell);
+            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell);
+            cell.addWallRefenceToCell(aWall, "east");
         }
     }
 

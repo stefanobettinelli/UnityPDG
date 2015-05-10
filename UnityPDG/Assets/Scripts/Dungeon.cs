@@ -8,6 +8,7 @@ public class Dungeon : MonoBehaviour {
 
     public DungeonRoom dungeonRoomPrefab;
     public DungeonCell dungeonCellPrefab;
+    public WallUnit wallPrefab;
 
 	private int _minRoomWidth;
 	private int _maxRoomWidth;
@@ -209,12 +210,10 @@ public class Dungeon : MonoBehaviour {
                     Vector3 c1 = new Vector3(roomArray[i].Data.Center.x, 3, roomArray[i].Data.Center.z);
                     Vector3 c2 = new Vector3(roomArray[j].Data.Center.x, 3, roomArray[j].Data.Center.z);
                     centerList.Add(new centerPair(c1, c2));
-                    //createCorridor(gameObjectRoomArray[i], gameObjectRoomArray[j]); // va passato il gameobject istanziato nello spazio e non il roomArray[i]
+                    createCorridor(gameObjectRoomArray[i], gameObjectRoomArray[j]); // va passato il gameobject istanziato nello spazio e non il roomArray[i]
                 }
             }
-        }//fine algoritmo di connessione
-
-        Debug.Log(tileMatrix);
+        }//fine algoritmo di connessione        
   
 	}//fine generate
 
@@ -228,16 +227,17 @@ public class Dungeon : MonoBehaviour {
         {
             case 0:
                 {
-                    IntVector2 lastP = creatHorizontalCorridor(roomA.Data.Center, dx);//crea il pezzo di corridoio orizzontale partendo dalla stanza A
-                    createVerticalCorridor(lastP, dz);////crea il pezzo di corridoio verticale partendo dalla stanza A
-                    Debug.Log("----- Stanza " + roomA.Data.Name + " collegata con stanza " + roomB.Data.Name);
+                    //passo roomA per poi usare le sue celle controllare se ci sono eventuali muri da rimuovere
+                    IntVector2 lastP = createHorizontalCorridor(roomA.Data.Center, dx, roomA);//crea il pezzo di corridoio orizzontale partendo dalla stanza A
+                    createVerticalCorridor(lastP, dz, roomA);////crea il pezzo di corridoio verticale partendo dalla stanza A
+                    //Debug.Log("----- Stanza " + roomA.Data.Name + " collegata con stanza " + roomB.Data.Name);
                     break;
                 }
             case 1:
                 {
-                    IntVector2 lastP = createVerticalCorridor(roomA.Data.Center, dz);////crea il pezzo di corridoio verticale partendo dalla stanza A
-                    creatHorizontalCorridor(lastP, dx);//crea il pezzo di corridoio orizzontale partendo dalla stanza A
-                    Debug.Log("----- Stanza " + roomA.Data.Name + " collegata con stanza " + roomB.Data.Name);
+                    IntVector2 lastP = createVerticalCorridor(roomA.Data.Center, dz, roomA);////crea il pezzo di corridoio verticale partendo dalla stanza A
+                    createHorizontalCorridor(lastP, dx, roomA);//crea il pezzo di corridoio orizzontale partendo dalla stanza A
+                    //Debug.Log("----- Stanza " + roomA.Data.Name + " collegata con stanza " + roomB.Data.Name);
                     break;
                 }
             default:
@@ -245,59 +245,98 @@ public class Dungeon : MonoBehaviour {
         }
     }
 
-    private IntVector2 creatHorizontalCorridor(IntVector2 startPos, int lenght)
+    private IntVector2 createHorizontalCorridor(IntVector2 startPos, int lenght, DungeonRoom aRoom)
     {
         for (int i = 0; i < Mathf.Abs(lenght); i++)
         {
             if (lenght < 0)
             {
-                Debug.Log("tile corridoio in pos: (" + (startPos.x + 1) + ", " + (startPos.z) + ")");
+                //Debug.Log("tile corridoio in pos: (" + (startPos.x + 1) + ", " + (startPos.z) + ")");
                 startPos = new IntVector2(startPos.x + 1, startPos.z);
-                createCorridorTile(startPos);
-                Debug.Log(startPos);
+                createCorridorTile(startPos,0,"east");
+                foreach (DungeonCell aCell in aRoom.activeCells)
+                {
+                    Debug.Log(aCell);
+                }
+                //Debug.Log(startPos);
             }
             else if (lenght > 0)
             {
-                Debug.Log("tile corridoio in pos: (" + (startPos.x - 1) + ", " + (startPos.z) + ")");
+                //Debug.Log("tile corridoio in pos: (" + (startPos.x - 1) + ", " + (startPos.z) + ")");
                 startPos = new IntVector2(startPos.x - 1, startPos.z);
-                createCorridorTile(startPos);
-                Debug.Log(startPos);
+                createCorridorTile(startPos,0,"west");
+                foreach (DungeonCell aCell in aRoom.activeCells)
+                {
+                    Debug.Log(aCell);
+                }
+                //Debug.Log(startPos);
             }
         }
         return startPos;
     }
 
-    private IntVector2 createVerticalCorridor(IntVector2 startPos, int lenght)
+    private IntVector2 createVerticalCorridor(IntVector2 startPos, int lenght, DungeonRoom aRoom)
     {
         for (int i = 0; i < Mathf.Abs(lenght); i++)
         {
             if (lenght < 0)
             {
-                Debug.Log("tile corridoio in pos: (" + startPos.x + ", " + (startPos.z + 1) + ")");
+                //Debug.Log("tile corridoio in pos: (" + startPos.x + ", " + (startPos.z + 1) + ")");
                 startPos = new IntVector2(startPos.x, startPos.z + 1);
-                createCorridorTile(startPos);
-                Debug.Log(startPos);
+                createCorridorTile(startPos,1,"north");
+                foreach (DungeonCell aCell in aRoom.activeCells)
+                {
+                    Debug.Log(aCell);
+                }
+                //Debug.Log(startPos);
             }
             else if (lenght > 0)
             {
-                Debug.Log("tile corridoio in pos: (" + startPos.x + ", " + (startPos.z - 1) + ")");
+                //Debug.Log("tile corridoio in pos: (" + startPos.x + ", " + (startPos.z - 1) + ")");
                 startPos = new IntVector2(startPos.x, startPos.z - 1);
-                createCorridorTile(startPos);
-                Debug.Log(startPos);
+                createCorridorTile(startPos,1,"south");
+                foreach (DungeonCell aCell in aRoom.activeCells)
+                {
+                    Debug.Log(aCell);
+                }
+                //Debug.Log(startPos);
             }
         }
         return startPos;
     }
 
-    private void createCorridorTile(IntVector2 c)
+    private DungeonCell createCorridorTile(IntVector2 c, int dir, string sDir)
     {
-        //if (tileMatrix[c.z, c.x] == 0)
+        if (tileMatrix[c.z, c.x] == 0)
         {//se non c'è sovrapposizione crea la mattonella del corridoio
             //tileMatrix.addTile(c.z,c.x) == false
-            //Debug.Log(tileMatrix[c.z,c.x]);
-            Debug.Log("dovrei fare addTile su: " + c.x + ", " + c.z);
-            CreateCorridorCell(c);
+            DungeonCell aCell = CreateCorridorCell(c);
+            CreateWall(aCell.Coordinates.x,aCell.Coordinates.z,1,1,aCell,dir);
         }
+        return null;
+    }
+
+    private void CreateWall(int x, int z, int width, int height, DungeonCell cell, int dir)
+    {        
+        if( dir == 0 ){
+            InstanciateWall(Directions.directionVectors[(int)Direction.North], Direction.North, cell);
+            InstanciateWall(Directions.directionVectors[(int)Direction.South], Direction.South, cell);
+        }
+            
+        if ( dir == 1)
+        {
+            InstanciateWall(Directions.directionVectors[(int)Direction.West], Direction.West, cell);
+            InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell);
+        }        
+    }
+
+    private void InstanciateWall(IntVector2 wallDirection, Direction direction, DungeonCell cell)
+    {
+        WallUnit aWall = Instantiate(wallPrefab) as WallUnit;
+        aWall.transform.parent = cell.transform;
+        aWall.transform.localPosition = new Vector3(wallDirection.x, 0.5f, wallDirection.z);
+        aWall.transform.localRotation = direction.ToRotation();
+
     }
 
     //crea una mattonella del pavimento nelle coordinate "coordinates"
@@ -360,11 +399,13 @@ public class Dungeon : MonoBehaviour {
         //    overLapX /= overLapZ;
         if (startedX || startedZ)
         {
-            Debug.Log("Overlap starts at coordinates x: " + startOverLapX + ", z: " + startOverLapZ);
-            Debug.Log("Width OverX " + overLapX + " Height OverZ " + overLapZ);
+            //Debug.Log("Overlap starts at coordinates x: " + startOverLapX + ", z: " + startOverLapZ);
+            //Debug.Log("Width OverX " + overLapX + " Height OverZ " + overLapZ);
         }        
     }
+    
 
+    //aggiorna la matrice di 1 e 0 aggiungendo gli uni per la stanza aRoom
     private void updateTileMatrix(DungeonRoom aRoom)
     {
         for (int i = 0; i < aRoom.Data.Width; i++)        
