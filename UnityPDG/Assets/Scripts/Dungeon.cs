@@ -260,6 +260,7 @@ public class Dungeon : MonoBehaviour {
     //crea il corridoio di connessione fatto da unità base di "tile" che connette la stanza A e B
     private void createCorridor(DungeonRoom roomA, DungeonRoom roomB)
     {
+        //sukaaaaaaaaaa
         int dir = Random.Range(0,2);
         int dx = roomA.Data.Center.x - roomB.Data.Center.x;
         int dz = roomA.Data.Center.z - roomB.Data.Center.z;
