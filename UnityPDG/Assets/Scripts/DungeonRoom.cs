@@ -27,16 +27,17 @@ public class DungeonRoom: MonoBehaviour {
     }
 
     public void generateRoomSize(int minWidth, int maxWidth, int minHeight, int maxHeight)
-    {
+    {        
         //Debug.Log("generate room size, ranges...: " + minWidth + " " + maxWidth + " " + minHeight + " " + maxHeight + " ");
         int aWidth = Random.Range(minWidth, maxWidth);
         int aHeight = Random.Range(minHeight, maxHeight);
         data = new RoomData(aWidth, aHeight);
     }
 
-    private WallUnit InstanciateWall(IntVector2 wallDirection, Direction direction, DungeonCell cell)
+    private WallUnit InstanciateWall(IntVector2 wallDirection, Direction direction, DungeonCell cell, string wallType)
     {
         WallUnit aWall = Instantiate(wallPrefab) as WallUnit;
+        aWall.name = wallType;
         aWall.transform.parent = cell.transform;
         aWall.transform.localPosition = new Vector3(wallDirection.x, 0.5f, wallDirection.z);
         aWall.transform.localRotation = direction.ToRotation();
@@ -55,6 +56,21 @@ public class DungeonRoom: MonoBehaviour {
         newDungeonCell.transform.parent = transform; //fa diventare tutte le celle generate figlie del game object Dungeon
         newDungeonCell.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);       
         return newDungeonCell;
+    }
+
+    //crea il pavimento intero invece di piccole mattonelle, usato per questioni di efficenza date dalla reduzione del carico di mesh da renderizzare
+    private void CreateBaseFloor(IntVector2 coordinates, int width, int height)
+    {
+        DungeonCell roomFloor = Instantiate(dungeonCellPrefab) as DungeonCell;
+        //cells[coordinates.x,coordinates.z] = newDungeonCell;
+        roomFloor.name = "DungeonRoomFloor_origin";
+        roomFloor.Coordinates = coordinates;
+        roomFloor.transform.parent = transform; //fa diventare tutte le celle generate figlie del game object Dungeon
+        roomFloor.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);
+        roomFloor.transform.localScale = new Vector3(width, 0, height);
+        //roomFloor.transform.GetChild(0).transform.localScale = new Vector3(width, 0, height);
+        //dato che lo scaling in unity parte dal centro devo poi traslare in avanti e sopra della metà + 0.5f (0.5 perché la singola mattonella altrimenti non combacia con lunità di unity)
+        roomFloor.transform.position = new Vector3(roomFloor.transform.position.x + roomFloor.transform.localScale.x / 2 - 0.5f, 0, roomFloor.transform.position.z + roomFloor.transform.localScale.z / 2 - 0.5f);        
     }
 
     //i parametri sono i valori di shit usati nell'algoritmo che sistema le stanze in modo che non ci siano sovrapposizioni in Dungeon.cs
@@ -81,12 +97,14 @@ public class DungeonRoom: MonoBehaviour {
             for (int z = 0; z < Data.Height; z++)
             {
                 DungeonCell aCell = CreateCell((new IntVector2(x, z)));
+                aCell.transform.GetChild(0).GetComponent<Renderer>().enabled = false;
                 activeCells.Add(aCell);
                 //ogni volta che si crea una cella se questa fa parte del perimetro creo una unità muro
                 //il controllo che sia nel perimetro viene effettuato nella funzione stessa
                 CreateWall(x, z, Data.Width, Data.Height, aCell);
             }
         }
+        CreateBaseFloor(new IntVector2(0,0), Data.Width, Data.Height);        
         return activeCells;
     }
 
@@ -97,22 +115,22 @@ public class DungeonRoom: MonoBehaviour {
     {
         if (z == 0 && x >= 0 && x < width)
         {
-            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.South], Direction.South, cell);
+            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.South], Direction.South, cell,"south wall");
             cell.addWallRefenceToCell(aWall,"south");
         }
         if (z == height - 1 && x >= 0 && x < width)
         {
-            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.North], Direction.North, cell);
+            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.North], Direction.North, cell,"north wall");
             cell.addWallRefenceToCell(aWall, "north");
         }
         if (x == 0 && z >= 0 && z < height)
         {
-            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.West], Direction.West, cell);
+            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.West], Direction.West, cell,"west wall");
             cell.addWallRefenceToCell(aWall, "west");
         }
         if (x == width - 1 && z >= 0 && z < height)
         {
-            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell);
+            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell,"east wall");
             cell.addWallRefenceToCell(aWall, "east");
         }
     }

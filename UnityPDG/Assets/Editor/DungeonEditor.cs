@@ -15,6 +15,7 @@ public class DungeonEditor :  EditorWindow{
     public int roomNum;
     public int minPadding;
     public int minShitValue;
+    public int seed;
 
 
 	[MenuItem("Window/Dungeon Generator Editor")]
@@ -39,6 +40,9 @@ public class DungeonEditor :  EditorWindow{
         maxHeight = EditorGUILayout.IntField("Max Room Height:", maxHeight);
         roomNum = EditorGUILayout.IntField("Room Number:", roomNum);
         minShitValue = EditorGUILayout.IntField("Min. Shift Value:", minShitValue);
+        seed = EditorGUILayout.IntField("Seed:", seed);
+        //imposto il seme della classe random
+        Random.seed = seed;
         if (GUILayout.Button("Generate a Dungeon"))
         {
             dungeonInstance = dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight, roomNum, minShitValue);        
