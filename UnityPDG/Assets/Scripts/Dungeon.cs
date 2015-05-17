@@ -500,7 +500,7 @@ public class Dungeon : MonoBehaviour {
         {//se non c'è sovrapposizione crea la mattonella del corridoio            
             tileMatrix[c.z, c.x] = 2;                 
             aCell = CreateCorridorCell(c);
-            print("Corridor tile created at " + c);
+            //print("Corridor tile created at " + c);
             aCell.transform.parent = transform;
             try
             {
@@ -516,7 +516,7 @@ public class Dungeon : MonoBehaviour {
         if (tileMatrix[c.z, c.x] == 1 && !lastSegmentTile)
         {
             destroyWall(c, sDir, true);
-            print("FOUND tile TYPE 1 i need to destroy wall at " + c + " direction " + sDir);
+            //print("FOUND tile TYPE 1 i need to destroy wall at " + c + " direction " + sDir);
         }
         else if (tileMatrix[c.z, c.x] == 1 && lastSegmentTile)
         {
@@ -529,12 +529,12 @@ public class Dungeon : MonoBehaviour {
             {
                 destroyWall(c, nextSdir, false);
                 destroyWall(c,oppositeDir(sDir),false);
-                print("FOUND last segment TYPE 2 i need to destroy wall at " + c + " direction " + nextSdir);
+                //print("FOUND last segment TYPE 2 i need to destroy wall at " + c + " direction " + nextSdir);
             }
             else
             {
                 destroyWall(c, sDir, true);
-                print("FOUND TYPE 2 i need to destroy wall at " + c + " direction " + sDir);            
+                //print("FOUND TYPE 2 i need to destroy wall at " + c + " direction " + sDir);            
             }            
         }
         return null;
