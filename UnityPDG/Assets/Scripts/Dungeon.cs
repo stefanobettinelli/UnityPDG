@@ -36,22 +36,17 @@ public class Dungeon : MonoBehaviour {
         public IntVector2 pos;
         public DungeonCell cell;
         public int prevDirection;
-        public List<DungeonCell> corridorCells;
 
-        public coordinateAndCell(IntVector2 aCoordinate, DungeonCell aCell, int dir, List<DungeonCell> cList)
+        public coordinateAndCell(IntVector2 aCoordinate, DungeonCell aCell, int dir)
         {
             pos = aCoordinate;
             cell = aCell;
             prevDirection = dir;
-            corridorCells = cList;
         }
 
     };
 
     private List<centerPair> centerList = new List<centerPair>();
-
-    private List<List<DungeonCell>> listOfPaths = new List<List<DungeonCell>>();
-
     /*
      * Struttura dati specifica per memorizzare le singole mattonelle attivi nello spazio,
      * ho dovuto implementarla a mano in quanto in C# pare che non esistano strutture dati built in
@@ -282,16 +277,12 @@ public class Dungeon : MonoBehaviour {
                     //passo roomA per poi usare le sue celle controllare se ci sono eventuali muri da rimuovere
                     coordinateAndCell lastCCH = createHorizontalCorridor(roomA.Data.Center, dx, roomA, roomB, null,0,nextDirZ);//crea il pezzo di corridoio orizzontale partendo dalla stanza A                    
                     coordinateAndCell lastCCV = createVerticalCorridor(lastCCH.pos, dz, roomA, roomB, lastCCH.cell, lastCCH.prevDirection,"");////crea il pezzo di corridoio verticale partendo dalla stanza A
-                    lastCCH.corridorCells.AddRange(lastCCV.corridorCells);
-                    listOfPaths.Add(lastCCH.corridorCells);
                     break;
                 }
             case 1:
                 {
                     coordinateAndCell lastCCV = createVerticalCorridor(roomA.Data.Center, dz, roomA, roomB, null,0, nextDirX);////crea il pezzo di corridoio verticale partendo dalla stanza A
                     coordinateAndCell lastCCH = createHorizontalCorridor(lastCCV.pos, dx, roomA, roomB, lastCCV.cell, lastCCV.prevDirection,"");//crea il pezzo di corridoio orizzontale partendo dalla stanza A
-                    lastCCV.corridorCells.AddRange(lastCCH.corridorCells);
-                    listOfPaths.Add(lastCCV.corridorCells);
                     break;
                 }
             default:
@@ -304,21 +295,80 @@ public class Dungeon : MonoBehaviour {
         coordinateAndCell ret;
         DungeonCell aCell = null;
         int direction = 0;
+        bool lastSegmentTile = false;
+        string nextSdir = "none";
         for (int i = 0; i < Mathf.Abs(lenght); i++)
         {
+            if (i == (Mathf.Abs(lenght) - 1))
+            {
+                nextSdir = nextDirZ;
+                lastSegmentTile = true;
+            }
             if (lenght < 0)
             {
                 startPos = new IntVector2(startPos.x + 1, startPos.z);                
-                aCell = createCorridorTile(startPos, 0, "east");
+                aCell = createCorridorTile(startPos, "east", nextSdir, lastSegmentTile);
                 direction = 1;
             }
             else if (lenght > 0)
             {
                 startPos = new IntVector2(startPos.x - 1, startPos.z);
-                aCell = createCorridorTile(startPos, 0, "west");
+                aCell = createCorridorTile(startPos, "west", nextSdir, lastSegmentTile);
                 direction = -1;
             }
-        }        
+            //tranne che sull'ultima tile metto le mura laterali
+            if (i < (Mathf.Abs(lenght) - 1) && aCell !=null)
+                CreateCorridorWalls(aCell, 0, aCell.transform);
+        }
+
+        //gestione delle mura nell'ultime tile con i 4 casi possibili, ma prima di tutto controllo che la cella sia stata veramente creata
+        if (aCell != null)
+        {
+            if (direction == 1)
+            {
+                if (nextDirZ == "north")
+                {
+                    if (tileMatrix[aCell.Coordinates.z - 1, aCell.Coordinates.x] == 0)
+                    {
+                        createSingleWall(aCell, "south", aCell.transform);
+                    }
+                    if (tileMatrix[aCell.Coordinates.z, aCell.Coordinates.x+1] == 0)
+                    {
+                        createSingleWall(aCell, "east", aCell.transform);
+                    }
+                }
+                if (nextDirZ == "south")
+                {
+                    if (tileMatrix[aCell.Coordinates.z + 1, aCell.Coordinates.x] == 0)
+                    {
+                        createSingleWall(aCell, "north", aCell.transform);
+                    }
+                    if (tileMatrix[aCell.Coordinates.z, aCell.Coordinates.x+1] == 0)
+                    {
+                        createSingleWall(aCell, "east", aCell.transform);
+                    }
+                }
+            }
+            if (direction == -1)
+            {
+                if (nextDirZ == "north")
+                {
+                    if (tileMatrix[aCell.Coordinates.z-1, aCell.Coordinates.x] == 0)
+                    {
+                        createSingleWall(aCell, "south", aCell.transform);
+                    }
+                    if (tileMatrix[aCell.Coordinates.z, aCell.Coordinates.x-1] == 0)
+                    {
+                        createSingleWall(aCell, "west", aCell.transform);
+                    }
+                }
+                if (nextDirZ == "south")
+                {
+                    createSingleWall(aCell, "north", aCell.transform);
+                    createSingleWall(aCell, "west", aCell.transform);
+                }
+            }
+        }
         ret = new coordinateAndCell(startPos, aCell, direction);
         return ret;
     }
@@ -327,55 +377,130 @@ public class Dungeon : MonoBehaviour {
     {
         coordinateAndCell ret;
         DungeonCell aCell = null;
-        int direction = 0;        
+        int direction = 0;
+        bool lastSegmentTile = false;
+        string nextSdir = "none";
         for (int i = 0; i < Mathf.Abs(lenght); i++)
         {
+            if (i == (Mathf.Abs(lenght) - 1))
+            {
+                nextSdir = nextDirX;
+                lastSegmentTile = true;
+            }
             if (lenght < 0)
             {
-                startPos = new IntVector2(startPos.x, startPos.z + 1);                
-                aCell = createCorridorTile(startPos, 1, "north");                                          
+                startPos = new IntVector2(startPos.x, startPos.z + 1);
+                aCell = createCorridorTile(startPos, "north", nextSdir, lastSegmentTile);                                          
                 direction = 1;
             }
             else if (lenght > 0)
             {
                 startPos = new IntVector2(startPos.x, startPos.z - 1);
-                aCell = createCorridorTile(startPos, 1, "south");
+                aCell = createCorridorTile(startPos, "south", nextSdir, lastSegmentTile);
                 direction = -1;
+            }            
+            if (i < (Mathf.Abs(lenght) - 1) && aCell != null)
+                CreateCorridorWalls(aCell, 1, aCell.transform);
+        }
+
+        if (aCell != null)
+        {
+            if (direction == 1)
+            {
+                if (nextDirX == "east")
+                {
+                    if (tileMatrix[aCell.Coordinates.z, aCell.Coordinates.x - 1] == 0)
+                    {                        
+                        createSingleWall(aCell, "west", aCell.transform);
+                    }
+                    if (tileMatrix[aCell.Coordinates.z+1, aCell.Coordinates.x] == 0)
+                    {
+                        createSingleWall(aCell, "north", aCell.transform);
+                    }
+                }
+                if (nextDirX == "west")
+                {
+                    if (tileMatrix[aCell.Coordinates.z + 1, aCell.Coordinates.x] == 0)
+                    {
+                        createSingleWall(aCell, "north", aCell.transform);
+                    }
+                    if (tileMatrix[aCell.Coordinates.z, aCell.Coordinates.x+1] == 0)
+                    {
+                        createSingleWall(aCell, "east", aCell.transform);
+                    }
+                }
+            }
+            if (direction == -1)
+            {
+                if (nextDirX == "east")
+                {
+                    if (tileMatrix[aCell.Coordinates.z-1, aCell.Coordinates.x] == 0)
+                    {
+                        createSingleWall(aCell, "south", aCell.transform);
+                    }
+                    if (tileMatrix[aCell.Coordinates.z, aCell.Coordinates.x-1] == 0)
+                    {
+                        createSingleWall(aCell, "west", aCell.transform);
+                    }
+                }
+                if (nextDirX == "west")
+                {
+                    if (tileMatrix[aCell.Coordinates.z - 1, aCell.Coordinates.x] == 0)
+                    {
+                        createSingleWall(aCell, "south", aCell.transform);
+                    }
+                    if (tileMatrix[aCell.Coordinates.z, aCell.Coordinates.x+1] == 0)
+                    {
+                        createSingleWall(aCell, "east", aCell.transform);
+                    }
+                }
             }
         }
         ret = new coordinateAndCell(startPos, aCell, direction);
         return ret;
     }
 
-    public void destroyWall(IntVector2 coordinates, string direction)
+    //il booleano doubleDirection=false lo uso per distruggere un singolo muro nella direzione direction
+    public void destroyWall(IntVector2 coordinates, string direction, bool doubleDirection)
     {
         DungeonCell tmp;
-        if (direction == "north" || direction == "south")
+        if (doubleDirection)
         {
-            //print("distruggo nord e sud su " + coordinates);
-            if (activeDungeonCells.TryGetValue(coordinates, out tmp))
+            if (direction == "north" || direction == "south")
             {
-                tmp.destroyWall("north");
-                tmp.destroyWall("south");
+                //print("distruggo nord e sud su " + coordinates);
+                if (activeDungeonCells.TryGetValue(coordinates, out tmp))
+                {
+                    tmp.destroyWall("north");
+                    tmp.destroyWall("south");
+                }
+            }
+            else if (direction == "east" || direction == "west")
+            {
+                if (activeDungeonCells.TryGetValue(coordinates, out tmp))
+                {
+                    tmp.destroyWall("east");
+                    tmp.destroyWall("west");
+                }
             }
         }
-        else if (direction == "east" || direction == "west")
+        else
         {
             if (activeDungeonCells.TryGetValue(coordinates, out tmp))
-            {
-                tmp.destroyWall("east");
-                tmp.destroyWall("west");
-            }
+                {
+                    tmp.destroyWall(direction);
+                }
         }
     }
 
-    private DungeonCell createCorridorTile(IntVector2 c, int dir, string sDir)
+    private DungeonCell createCorridorTile(IntVector2 c, string sDir, string nextSdir, bool lastSegmentTile)
     {
         DungeonCell aCell = null;
         if (tileMatrix[c.z, c.x] == 0)
         {//se non c'è sovrapposizione crea la mattonella del corridoio            
             tileMatrix[c.z, c.x] = 2;                 
             aCell = CreateCorridorCell(c);
+            print("Corridor tile created at " + c);
             aCell.transform.parent = transform;
             try
             {
@@ -385,26 +510,84 @@ public class Dungeon : MonoBehaviour {
             {
                 print("An element with Key = \"txt\" already exists.");
             }
-            CreateCorridorWalls(aCell, dir, aCell.transform);            
+            //CreateCorridorWalls(aCell, dir, aCell.transform);            
             return aCell;
+        }
+        if (tileMatrix[c.z, c.x] == 1 && !lastSegmentTile)
+        {
+            destroyWall(c, sDir, true);
+            print("FOUND tile TYPE 1 i need to destroy wall at " + c + " direction " + sDir);
+        }
+        else if (tileMatrix[c.z, c.x] == 1 && lastSegmentTile)
+        {
+            destroyWall(c, nextSdir, false);
+            destroyWall(c, oppositeDir(sDir), false);
+        }
+        if (tileMatrix[c.z, c.x] == 2)
+        {
+            if (lastSegmentTile)
+            {
+                destroyWall(c, nextSdir, false);
+                destroyWall(c,oppositeDir(sDir),false);
+                print("FOUND last segment TYPE 2 i need to destroy wall at " + c + " direction " + nextSdir);
+            }
+            else
+            {
+                destroyWall(c, sDir, true);
+                print("FOUND TYPE 2 i need to destroy wall at " + c + " direction " + sDir);            
+            }            
         }
         return null;
     }
 
-    private void CreateCorridorWalls(DungeonCell cell, int dir, Transform parent)
-    {        
-        if( dir == 0 ){
-            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.North], Direction.North, cell, parent);
-            cell.addWallRefenceToCell(aWall,"north");
-            aWall = InstanciateWall(Directions.directionVectors[(int)Direction.South], Direction.South, cell, parent);            
-            cell.addWallRefenceToCell(aWall,"south");
-        }          
-        if ( dir == 1)
+    private string oppositeDir(string dir)
+    {
+        string ret = "";
+        if (dir == "north")
         {
-            WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.West], Direction.West, cell, parent);
-            cell.addWallRefenceToCell(aWall,"west");
-            aWall = InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell, parent);            
-            cell.addWallRefenceToCell(aWall,"east");
+            ret = "south";
+        }
+        if (dir == "south")
+        {
+            ret = "north";
+        }
+        if (dir == "east")
+        {
+            ret = "west";
+        }
+        if (dir == "west")
+        {
+            ret = "east";
+        }
+        return ret;
+    }
+
+    private void CreateCorridorWalls(DungeonCell cell, int dir, Transform parent)
+    {            
+        if( dir == 0 ){
+            if (tileMatrix[cell.Coordinates.z + 1, cell.Coordinates.x] == 0)
+            {
+                WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.North], Direction.North, cell, parent);
+                cell.addWallRefenceToCell(aWall, "north");
+            }
+            if (tileMatrix[cell.Coordinates.z-1, cell.Coordinates.x] == 0)
+            {
+                WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.South], Direction.South, cell, parent);
+                cell.addWallRefenceToCell(aWall, "south");
+            }
+        }          
+        if ( dir == 1 )
+        {
+            if (tileMatrix[cell.Coordinates.z, cell.Coordinates.x - 1] == 0)
+            {
+                WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.West], Direction.West, cell, parent);
+                cell.addWallRefenceToCell(aWall, "west");
+            }
+            if (tileMatrix[cell.Coordinates.z, cell.Coordinates.x + 1] == 0)
+            {
+                WallUnit aWall = InstanciateWall(Directions.directionVectors[(int)Direction.East], Direction.East, cell, parent);
+                cell.addWallRefenceToCell(aWall, "east");
+            }
         }
     }
 
