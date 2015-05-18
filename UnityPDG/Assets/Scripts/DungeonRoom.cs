@@ -104,7 +104,7 @@ public class DungeonRoom: MonoBehaviour {
                 CreateWall(x, z, Data.Width, Data.Height, aCell);
             }
         }
-        CreateBaseFloor(new IntVector2(0,0), Data.Width, Data.Height);        
+        CreateBaseFloor(new IntVector2(0, 0), Data.Width, Data.Height);//costruisce un quad unico delle dimensioni passate, piccola ottimizzazione in modo da non avere wxh celle  
         return activeCells;
     }
 
