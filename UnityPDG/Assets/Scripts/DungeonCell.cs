@@ -11,6 +11,7 @@ public class DungeonCell : MonoBehaviour {
     private string eastWalls = "none";
     private WallUnit westWall = null;
     private string westWalls = "none";
+    public string direction = "none";
 
     public void addWallRefenceToCell(WallUnit aWall, string type )
     {
