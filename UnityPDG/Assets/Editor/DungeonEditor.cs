@@ -21,6 +21,9 @@ public class DungeonEditor :  EditorWindow{
     public bool showRNG = true;
     public bool showCorridors = true;
 
+    private bool dungeonGenerated = false;
+    private string seedString = "";
+
 	[MenuItem("Window/Dungeon Generator Editor")]
     static void  ShowWindow () 
     {
@@ -52,14 +55,23 @@ public class DungeonEditor :  EditorWindow{
         else
         {
             Random.seed = System.Environment.TickCount;
+            seed = Random.seed;
         }
         EditorGUILayout.EndToggleGroup();
         showRNG = EditorGUILayout.Toggle("Show/Hide RNG graph", showRNG);
         showCorridors = EditorGUILayout.Toggle("Show/Hide Corridors", showCorridors);
         if (GUILayout.Button("Generate a Dungeon"))
         {
-            dungeonInstance = dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight, roomNum, minShitValue);
+            dungeonInstance = dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight, roomNum, minShitValue);            
+            Debug.Log("Last generation seed: " + seed);
+            dungeonGenerated = true;
+        }        
+        if (dungeonGenerated)
+        {
+            seedString = "" + seed;                       
+            dungeonGenerated = false;
         }
+        EditorGUILayout.LabelField("Last generation seed: ", seedString);        
         if (dungeonInstance)
         {
             dungeonInstance.showRNGGraph(showRNG);
@@ -72,14 +84,7 @@ public class DungeonEditor :  EditorWindow{
             var logEntries = System.Type.GetType("UnityEditorInternal.LogEntries,UnityEditor.dll");
             var clearMethod = logEntries.GetMethod("Clear", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
             clearMethod.Invoke(null, null);
-        }
-
-        if (GUI.changed)
-        {
-            Debug.Log(GUI.changed);
-            if ( dungeonInstance )
-                EditorUtility.SetDirty(dungeonInstance);
-        } 
+        }    
 
 	}    
 }

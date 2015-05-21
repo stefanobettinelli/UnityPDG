@@ -241,7 +241,6 @@ public class Dungeon : MonoBehaviour {
         //    print("key: " + entry.Key + ", value: " + entry.Value);
         //}
         //print(tileMatrix);
-        print("current seed: " +Random.seed);
 	}//fine generate
 
     private void updateDungeonActiveCells(IntVector2 origin, DungeonRoom aRoom)
