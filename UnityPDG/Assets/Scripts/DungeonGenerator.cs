@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[System.Serializable]
 public class DungeonGenerator : MonoBehaviour, DungeonGeneratorInterface {
 
 	public Dungeon dungeonPrefab;
-	private Dungeon _dungeonInstance;
+	private Dungeon _dungeonInstance;   
 
     public Dungeon CreateDungeon(string dungeonName, int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, int minShitValue)
     {
@@ -13,5 +14,5 @@ public class DungeonGenerator : MonoBehaviour, DungeonGeneratorInterface {
         _dungeonInstance.name = dungeonName;
         _dungeonInstance.Generate(minWidth, maxWidth, minHeight, maxHeight, roomNum, _dungeonInstance, minShitValue);
         return _dungeonInstance;
-	}	
+	} 
 }

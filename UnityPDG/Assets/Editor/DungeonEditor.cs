@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections;
+using System.Reflection;
 
 public class DungeonEditor :  EditorWindow{
-
-    private static DungeonGenerator dungeonGeneratorInstance;
+    
+    [SerializeField] private static DungeonGenerator dungeonGeneratorInstance;
     private static Dungeon dungeonInstance;
 
     string dungeonName = "";
@@ -15,8 +16,10 @@ public class DungeonEditor :  EditorWindow{
     public int roomNum;
     public int minPadding;
     public int minShitValue;
-    public int seed;
-
+    public bool seedInput = false;
+    public int seed = 0;
+    public bool showRNG = true;
+    public bool showCorridors = true;
 
 	[MenuItem("Window/Dungeon Generator Editor")]
     static void  ShowWindow () 
@@ -40,12 +43,28 @@ public class DungeonEditor :  EditorWindow{
         maxHeight = EditorGUILayout.IntField("Max Room Height:", maxHeight);
         roomNum = EditorGUILayout.IntField("Room Number:", roomNum);
         minShitValue = EditorGUILayout.IntField("Min. Shift Value:", minShitValue);
+        seedInput = EditorGUILayout.BeginToggleGroup("Input Seed?", seedInput);
         seed = EditorGUILayout.IntField("Seed:", seed);
-        //imposto il seme della classe random
-        Random.seed = seed;
+        if (seedInput)
+        {
+            Random.seed = seed;
+        }
+        else
+        {
+            Random.seed = System.Environment.TickCount;
+        }
+        EditorGUILayout.EndToggleGroup();
+        showRNG = EditorGUILayout.Toggle("Show/Hide RNG graph", showRNG);
+        showCorridors = EditorGUILayout.Toggle("Show/Hide Corridors", showCorridors);
         if (GUILayout.Button("Generate a Dungeon"))
         {
-            dungeonInstance = dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight, roomNum, minShitValue);        
+            dungeonInstance = dungeonGeneratorInstance.CreateDungeon(dungeonName, minWidth, maxWidth, minHeight, maxHeight, roomNum, minShitValue);
+        }
+        if (dungeonInstance)
+        {
+            dungeonInstance.showRNGGraph(showRNG);
+            dungeonInstance.ToggleGizmos(showRNG);
+            dungeonInstance.showCorridors(showCorridors);
         }
         if (GUILayout.Button("Destroy Dungeon"))
         {
@@ -54,5 +73,13 @@ public class DungeonEditor :  EditorWindow{
             var clearMethod = logEntries.GetMethod("Clear", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
             clearMethod.Invoke(null, null);
         }
-	}
+
+        if (GUI.changed)
+        {
+            Debug.Log(GUI.changed);
+            if ( dungeonInstance )
+                EditorUtility.SetDirty(dungeonInstance);
+        } 
+
+	}    
 }

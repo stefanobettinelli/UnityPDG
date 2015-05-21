@@ -4,7 +4,9 @@ using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 
+using System.Reflection;
 
+[System.Serializable]
 public class Dungeon : MonoBehaviour {
 
     public DungeonRoom dungeonRoomPrefab;
@@ -16,8 +18,11 @@ public class Dungeon : MonoBehaviour {
 	private int _minRoomHeight;
 	private int _maxRoomHeight;
     private string dungeonName;
+    private bool showRNGonGizmos = true;
 
-    public Dictionary<IntVector2, DungeonCell> activeDungeonCells = new Dictionary<IntVector2, DungeonCell>();
+    private GameObject corridorsGO = null;
+
+    public Dictionary<IntVector2, DungeonCell> activeDungeonCells = new Dictionary<IntVector2, DungeonCell>();    
 
     //struttura utilizzata per renderizzare le linee del grafo RNG nella funzione onDrawGizmos
     private struct centerPair
@@ -145,6 +150,11 @@ public class Dungeon : MonoBehaviour {
     public int MaxRoomHeight { get { return _maxRoomHeight; } set { _maxRoomHeight = value; } }
     public string DungeonName{ get { return dungeonName; } set { dungeonName = value; } }
 
+    public void showCorridors(bool v)
+    {       
+        corridorsGO.SetActive(v);
+    }
+
     //Genera l'intero dungeon, il paramentro dungeon container è un semplice empty game object di contenimento, minshiftValue è il valore di spostamento
     //utilizzato dall'algoritmo di piazzamento delle stanze
     public void Generate(int minWidth, int maxWidth, int minHeight, int maxHeight, int roomNum, Dungeon dungeonContainer, int minShitValue)
@@ -152,6 +162,7 @@ public class Dungeon : MonoBehaviour {
         //questo array serve per memorizzare i dati delle stanze
         //le stanze non vengono fisicamente allocate ma servono solo per l'algoritmo di piazzamento
         DungeonRoom[] roomArray = new DungeonRoom[roomNum];
+        corridorsGO = new GameObject("corridors");
 
         //algoritmo di separazione
         for (int i = 0; i < roomNum; i++)
@@ -190,7 +201,7 @@ public class Dungeon : MonoBehaviour {
 
         //algoritmo di connessione O(n^3), crea prima il gravo RNG e poi connette le stanze con percorsi rettangolari
         int ijDist, ikDist, jkDist;
-        bool skip = false;
+        bool skip = false;        
         for (int i = 0; i < roomNum; i++)
         {
             for (int j = i + 1; j < roomNum; j++)
@@ -218,8 +229,9 @@ public class Dungeon : MonoBehaviour {
                     Vector3 c2 = new Vector3(roomArray[j].Data.Center.x, 3, roomArray[j].Data.Center.z);
                     centerList.Add(new centerPair(c1, c2)); //serve per disegnare il grafo rosso di overlay
 
-                    //ora quindi si crea il corridoio tra i e j
-                    createCorridor(gameObjectRoomArray[i], gameObjectRoomArray[j]); // va passato il gameobject istanziato nello spazio e non il roomArray[i]
+                    //ora quindi si crea il corridoio tra i e j                    
+                    createCorridor(corridorsGO,gameObjectRoomArray[i], gameObjectRoomArray[j]); // va passato il gameobject istanziato nello spazio e non il roomArray[i]
+                    corridorsGO.transform.parent = transform;
                     //print("ROOM " + gameObjectRoomArray[i] + " --- connected to ROOM --- " + gameObjectRoomArray[j]);
                 }
             }
@@ -229,7 +241,7 @@ public class Dungeon : MonoBehaviour {
         //    print("key: " + entry.Key + ", value: " + entry.Value);
         //}
         //print(tileMatrix);
-
+        print("current seed: " +Random.seed);
 	}//fine generate
 
     private void updateDungeonActiveCells(IntVector2 origin, DungeonRoom aRoom)
@@ -249,7 +261,7 @@ public class Dungeon : MonoBehaviour {
     }
 
     //crea il corridoio di connessione fatto da unità base di "tile" che connette la stanza A e B
-    private void createCorridor(DungeonRoom roomA, DungeonRoom roomB)
+    private void createCorridor(GameObject corridors,DungeonRoom roomA, DungeonRoom roomB)
     {
         int dir = Random.Range(0,2);
         int dx = roomA.Data.Center.x - roomB.Data.Center.x;
@@ -268,14 +280,14 @@ public class Dungeon : MonoBehaviour {
             case 0://prima corridoio orizzontale poi verticale
                 {
                     //passo roomA per poi usare le sue celle controllare se ci sono eventuali muri da rimuovere
-                    IntVector2 lastPosH = createHorizontalCorridor(roomA.Data.Center, dx,nextDirZ);//crea il pezzo di corridoio orizzontale partendo dalla stanza A                    
-                    IntVector2 lastPosV = createVerticalCorridor(lastPosH, dz, "");////crea il pezzo di corridoio verticale partendo dalla stanza A
+                    IntVector2 lastPosH = createHorizontalCorridor(corridors,roomA.Data.Center, dx,nextDirZ);//crea il pezzo di corridoio orizzontale partendo dalla stanza A                    
+                    IntVector2 lastPosV = createVerticalCorridor(corridors,lastPosH, dz, "");////crea il pezzo di corridoio verticale partendo dalla stanza A
                     break;
                 }
             case 1://viceversa
                 {
-                    IntVector2 lastPosV = createVerticalCorridor(roomA.Data.Center, dz, nextDirX);////crea il pezzo di corridoio verticale partendo dalla stanza A
-                    IntVector2 lastPosH = createHorizontalCorridor(lastPosV, dx, "");//crea il pezzo di corridoio orizzontale partendo dalla stanza A
+                    IntVector2 lastPosV = createVerticalCorridor(corridors,roomA.Data.Center, dz, nextDirX);////crea il pezzo di corridoio verticale partendo dalla stanza A
+                    IntVector2 lastPosH = createHorizontalCorridor(corridors,lastPosV, dx, "");//crea il pezzo di corridoio orizzontale partendo dalla stanza A
                     break;
                 }
             default:
@@ -286,7 +298,7 @@ public class Dungeon : MonoBehaviour {
 
     //riceve in input la posizione di inizion del corridoio, il centro quindi e poi la lunghezza del segmento in questo caso
     //orizzontale e infine nextDirZ è la stringa che indica la direzione del segmento verticale successivo
-    private IntVector2 createHorizontalCorridor(IntVector2 startPos, int lenght, string nextDirZ)
+    private IntVector2 createHorizontalCorridor(GameObject corridors, IntVector2 startPos, int lenght, string nextDirZ)
     {
         DungeonCell aCell = null;
         int direction = 0;
@@ -302,13 +314,13 @@ public class Dungeon : MonoBehaviour {
             if (lenght < 0)//cresce verso destra
             {
                 startPos = new IntVector2(startPos.x + 1, startPos.z);                
-                aCell = createCorridorTile(startPos, "east", nextSdir, lastSegmentTile);
+                aCell = createCorridorTile(corridors, startPos, "east", nextSdir, lastSegmentTile);
                 direction = 1;
             }
             else if (lenght > 0)//cresce verso sinistra
             {
                 startPos = new IntVector2(startPos.x - 1, startPos.z);
-                aCell = createCorridorTile(startPos, "west", nextSdir, lastSegmentTile);
+                aCell = createCorridorTile(corridors ,startPos, "west", nextSdir, lastSegmentTile);
                 direction = -1;
             }
             //tranne che sull'ultima tile metto le mura laterali
@@ -376,7 +388,7 @@ public class Dungeon : MonoBehaviour {
         return startPos;
     }
 
-    private IntVector2 createVerticalCorridor(IntVector2 startPos, int lenght, string nextDirX)
+    private IntVector2 createVerticalCorridor(GameObject corridors, IntVector2 startPos, int lenght, string nextDirX)
     {
         DungeonCell aCell = null;
         int direction = 0;
@@ -392,13 +404,13 @@ public class Dungeon : MonoBehaviour {
             if (lenght < 0)
             {
                 startPos = new IntVector2(startPos.x, startPos.z + 1);
-                aCell = createCorridorTile(startPos, "north", nextSdir, lastSegmentTile);                                          
+                aCell = createCorridorTile(corridors,startPos, "north", nextSdir, lastSegmentTile);                                          
                 direction = 1;
             }
             else if (lenght > 0)
             {
                 startPos = new IntVector2(startPos.x, startPos.z - 1);
-                aCell = createCorridorTile(startPos, "south", nextSdir, lastSegmentTile);
+                aCell = createCorridorTile(corridors,startPos, "south", nextSdir, lastSegmentTile);
                 direction = -1;
             }            
             if (i < (Mathf.Abs(lenght) - 1) && aCell != null)
@@ -494,15 +506,14 @@ public class Dungeon : MonoBehaviour {
         }
     }
 
-    private DungeonCell createCorridorTile(IntVector2 c, string sDir, string nextSdir, bool lastSegmentTile)
+    private DungeonCell createCorridorTile(GameObject corridors, IntVector2 c, string sDir, string nextSdir, bool lastSegmentTile)
     {
         DungeonCell aCell = null;
         if (tileMatrix[c.z, c.x] == 0)
         {//se non c'è sovrapposizione crea la mattonella del corridoio            
             tileMatrix[c.z, c.x] = 2;                 
-            aCell = CreateCorridorCell(c);
+            aCell = CreateCorridorCell(c, corridors);
             //print("Corridor tile created at " + c);
-            aCell.transform.parent = transform;
             try
             {
                 activeDungeonCells.Add(c, aCell);
@@ -637,24 +648,61 @@ public class Dungeon : MonoBehaviour {
     }
 
     //crea una mattonella del pavimento nelle coordinate "coordinates"
-    private DungeonCell CreateCorridorCell(IntVector2 coordinates)
+    private DungeonCell CreateCorridorCell(IntVector2 coordinates, GameObject corridors)
     {
         DungeonCell newDungeonCell = Instantiate(dungeonCellPrefab) as DungeonCell;
         //cells[coordinates.x,coordinates.z] = newDungeonCell;
         newDungeonCell.name = "Dungeon Corridor Cell " + coordinates.x + ", " + coordinates.z;
         newDungeonCell.Coordinates = coordinates;        
         newDungeonCell.transform.localPosition = new Vector3(coordinates.x + 0.5f, 0f, coordinates.z + 0.5f);
+        newDungeonCell.transform.parent = corridors.transform;
         return newDungeonCell;
     }
 
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        foreach (var c in centerList)
+        if (centerList != null)
         {
-            Gizmos.DrawLine(c._c1,c._c2);            
-        }        
+            foreach (var c in centerList)
+            {
+                Gizmos.DrawLine(c._c1, c._c2);
+            }
+        }
     }
+
+    public void ToggleGizmos(bool gizmosOn)
+    {
+        int val = gizmosOn ? 1 : 0;
+        Assembly asm = Assembly.GetAssembly(typeof(Editor));
+        System.Type type = asm.GetType("UnityEditor.AnnotationUtility");
+        if (type != null)
+        {
+            MethodInfo getAnnotations = type.GetMethod("GetAnnotations", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo setGizmoEnabled = type.GetMethod("SetGizmoEnabled", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo setIconEnabled = type.GetMethod("SetIconEnabled", BindingFlags.Static | BindingFlags.NonPublic);
+            var annotations = getAnnotations.Invoke(null, null);
+            foreach (object annotation in (IEnumerable)annotations)
+            {
+                System.Type annotationType = annotation.GetType();
+                FieldInfo classIdField = annotationType.GetField("classID", BindingFlags.Public | BindingFlags.Instance);
+                FieldInfo scriptClassField = annotationType.GetField("scriptClass", BindingFlags.Public | BindingFlags.Instance);
+                if (classIdField != null && scriptClassField != null)
+                {
+                    int classId = (int)classIdField.GetValue(annotation);
+                    string scriptClass = (string)scriptClassField.GetValue(annotation);
+                    setGizmoEnabled.Invoke(null, new object[] { classId, scriptClass, val });
+                    setIconEnabled.Invoke(null, new object[] { classId, scriptClass, val });
+                }
+            }
+        }
+    }
+
+
+    public void showRNGGraph(bool g)
+    {     
+        showRNGonGizmos = g;       
+    }    
     
     //aggiorna la matrice di 1 e 0 aggiungendo gli uni per la stanza aRoom
     private void updateTileMatrix(DungeonRoom aRoom)
