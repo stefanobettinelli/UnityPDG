@@ -130,9 +130,9 @@ public class Dungeon : MonoBehaviour {
         public override string ToString()
         {
             string str = "TileMatrix width: " + _w + ",height: " + _h + "\n";
-            for (int j = 0; j <_w; j++) 
+            for (int i = _h-1; i >= 0; i--) 
             {
-                for (int i = 0; i < _h; i++)
+                for (int j = 0; j <_w; j++)
                 {
                     str += m[i, j] + ",";
                 }
@@ -240,7 +240,7 @@ public class Dungeon : MonoBehaviour {
         //{
         //    print("key: " + entry.Key + ", value: " + entry.Value);
         //}
-        //print(tileMatrix);
+        print(tileMatrix);
 	}//fine generate
 
     private void updateDungeonActiveCells(IntVector2 origin, DungeonRoom aRoom)
